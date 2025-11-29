@@ -1,0 +1,850 @@
+/* 🔥 CSS كامل ومصحح - بدون أخطاء */
+:root {
+  /* نظام ألوان محسن */
+  --gold-primary: #d4a017;
+  --gold-secondary: #b8860b;
+  --gold-light: #f8de7e;
+  --gold-lighter: #fff9db;
+  
+  /* ألوان النظام */
+  --text: #222222;
+  --bg: #fbf8f3;
+  --panel: #ffffff;
+  --muted: #666666;
+  --accent: #b58300;
+  --success: #28a745;
+  --error: #dc3545;
+  --warning: #ffc107;
+  
+  /* ظلال محسنة */
+  --shadow-light: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-medium: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-large: 0 8px 25px rgba(0,0,0,0.15);
+  
+  /* أنيميشن */
+  --transition-fast: 0.2s ease;
+  --transition-smooth: 0.3s ease;
+}
+
+/* تحميل الخط */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Tajawal', 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: 'Tajawal', 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  direction: rtl;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 18px auto;
+  padding: 12px 18px;
+}
+
+/* 🔥 الأعلام في الزاوية */
+.corner-flags {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  background: rgba(255,255,255,0.95);
+  padding: 8px;
+  border-radius: 15px;
+  box-shadow: var(--shadow-medium);
+  border: 1px solid rgba(181,135,0,0.2);
+  backdrop-filter: blur(10px);
+}
+
+.corner-flag {
+  width: 35px;
+  height: 25px;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.corner-flag:hover {
+  transform: scale(1.15);
+  border-color: var(--gold-primary);
+}
+
+.corner-flag img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ✨ الهيدر */
+.topbar {
+  padding: 10px 0;
+  position: relative;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  font-weight: 900;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  background: linear-gradient(90deg, #f7d774, #fff6b0, #caa500, #f7d774);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 300%;
+  animation: goldshine 8s infinite linear;
+  line-height: 1.2;
+}
+
+@keyframes goldshine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.last-update {
+  color: var(--gold-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn-refresh {
+  background: var(--panel);
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all var(--transition-fast);
+  margin-top: 8px;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: var(--gold-light);
+  border-color: var(--gold-primary);
+  transform: translateY(-1px);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 🔥 أنواع الذهب */
+.types-row {
+  margin-top: 20px;
+}
+
+.types-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px 6px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.types-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.type-pill {
+  background: var(--panel);
+  padding: 16px 12px;
+  border-radius: 16px;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-light);
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-smooth);
+  flex-shrink: 0;
+}
+
+.type-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-large);
+}
+
+.type-pill.active {
+  box-shadow: 0 8px 25px rgba(181, 135, 0, 0.15);
+  border: 1px solid rgba(181, 135, 0, 0.2);
+  background: linear-gradient(135deg, #fffdf4, #fff3c0);
+}
+
+.type-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff7d1, #f8e79b, #d1a000);
+  border: 3px solid #f5d053;
+  box-shadow: 0 0 15px rgba(212, 168, 39, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: all var(--transition-smooth);
+}
+
+.type-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.type-circle img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.type-label {
+  margin-top: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text);
+}
+
+/* 💰 بطاقات الأسعار المحسنة - متناسقة */
+.prices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.price-card {
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-medium);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+  min-height: 140px;
+}
+
+.price-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
+}
+
+.price-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(212, 168, 39, 0.25);
+}
+
+/* 🔥 بطاقات البيع والشراء المميزة */
+.price-card.buy-card {
+  background: linear-gradient(135deg, #f8fff8, #f0f9f0);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.price-card.sell-card {
+  background: linear-gradient(135deg, #fff8f8, #f9f0f0);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.card-label {
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.card-value {
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  text-align: center;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.buy-card .card-value {
+  color: #28a745;
+}
+
+.sell-card .card-value {
+  color: #dc3545;
+}
+
+/* 🔥 أسهم التغير الديناميكية */
+.price-change {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all var(--transition-smooth);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.price-change.up {
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.price-change.down {
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.price-change.neutral {
+  color: #6c757d;
+  border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+.arrow {
+  font-size: 0.9rem;
+  transition: transform 0.3s ease;
+}
+
+.arrow.up {
+  transform: rotate(0deg);
+}
+
+.arrow.down {
+  transform: rotate(180deg);
+}
+
+.arrow.neutral {
+  transform: rotate(0deg);
+  opacity: 0.7;
+}
+
+/* 🔥 أنماط أزرار العملات */
+.currency-selector {
+  margin: 25px 0;
+  text-align: center;
+}
+
+.currency-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 15px;
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: var(--shadow-light);
+  border: 1px solid rgba(212, 168, 39, 0.1);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.currency-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: 2px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all var(--transition-smooth);
+  color: var(--text);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.currency-tab img {
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+  object-fit: cover;
+}
+
+.currency-tab:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold-primary);
+  background: var(--gold-lighter);
+  box-shadow: 0 4px 8px rgba(212, 168, 39, 0.2);
+}
+
+.currency-tab.active {
+  background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
+  color: white;
+  border-color: var(--gold-primary);
+  box-shadow: 0 4px 12px rgba(212, 168, 39, 0.4);
+}
+
+.currency-tab.active img {
+  border-color: white;
+  transform: scale(1.1);
+}
+
+/* 🔥 قسم أخبار الذهب */
+.news-section {
+  margin-top: 30px;
+  padding: 24px;
+  background: linear-gradient(135deg, #fff9db, #fff3bf);
+  border-radius: 16px;
+  border: 2px solid #ffe066;
+  box-shadow: var(--shadow-light);
+}
+
+.news-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+.news-container {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-primary) transparent;
+}
+
+.news-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.news-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.news-container::-webkit-scrollbar-thumb {
+  background: var(--gold-primary);
+  border-radius: 3px;
+}
+
+.news-item {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+  transition: all var(--transition-smooth);
+}
+
+.news-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.news-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.news-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.news-content h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.news-content p {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.news-source {
+  color: var(--accent);
+  font-weight: bold;
+  font-size: 0.8em;
+  margin: 8px 0;
+}
+
+.news-content small {
+  color: #999;
+  font-size: 0.8em;
+}
+
+/* 🔢 محول الذهب */
+.converter-card {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-medium);
+  background: var(--panel);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.converter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.select, .qty input, input#qty {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: #fbfbfb;
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+.select:focus, .qty input:focus, input#qty:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(212, 168, 39, 0.1);
+}
+
+.swap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.swap button {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #f7ead1, #f0ddb0);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swap button:hover {
+  transform: rotate(180deg) scale(1.1);
+  background: linear-gradient(135deg, #f0ddb0, #e8d19a);
+}
+
+.cur-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.flag-inline img {
+  width: 30px;
+  height: 20px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.cur-out {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.result-row {
+  margin-top: 20px;
+}
+
+.result-row input {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  background: #f8f9fa;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--gold-primary);
+  transition: all var(--transition-fast);
+}
+
+.result-row input:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+}
+
+.note {
+  color: var(--muted);
+  margin-top: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.footer-note {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 12px;
+}
+
+.api-status {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  background: #111;
+  color: #ffd86b;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  opacity: 0.95;
+  z-index: 1000;
+  box-shadow: var(--shadow-medium);
+  backdrop-filter: blur(10px);
+  border: 1px solid #333;
+}
+
+/* 📱 تجاوب الهواتف */
+@media (max-width: 768px) {
+  .container {
+    margin: 12px auto;
+    padding: 10px 12px;
+  }
+  
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .prices-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .price-card {
+    padding: 18px;
+    min-height: 130px;
+  }
+  
+  .card-value {
+    font-size: clamp(1.3rem, 4vw, 1.6rem);
+  }
+  
+  .converter-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .swap {
+    order: 3;
+    margin: 0;
+  }
+  
+  .swap button {
+    width: 100%;
+    height: 50px;
+  }
+  
+  .news-item {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .news-image {
+    width: 100%;
+    height: 150px;
+    margin: 0 auto;
+  }
+  
+  .corner-flags {
+    top: 10px;
+    left: 10px;
+    padding: 6px;
+  }
+  
+  .corner-flag {
+    width: 30px;
+    height: 20px;
+  }
+  
+  .type-pill {
+    min-width: 120px;
+    padding: 12px 8px;
+  }
+  
+  .type-circle {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .currency-tabs {
+    gap: 6px;
+    padding: 12px;
+    justify-content: flex-start;
+  }
+  
+  .currency-tab {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    min-width: 80px;
+    gap: 6px;
+  }
+  
+  .currency-tab img {
+    width: 18px;
+    height: 13px;
+  }
+  
+  .price-change {
+    font-size: 0.8rem;
+    padding: 5px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand {
+    font-size: 1.3rem;
+  }
+  
+  .price-card {
+    padding: 16px;
+  }
+  
+  .currency-tabs {
+    gap: 4px;
+    padding: 10px;
+  }
+  
+  .currency-tab {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    min-width: 70px;
+    gap: 4px;
+  }
+}
+/* 🔥 حماية المخطط من الاختفاء - إصدار نهائي */
+.chart-container,
+.chart-section, 
+.chart-box,
+#priceChart {
+    direction: ltr !important;
+    min-height: 300px;
+    position: relative !important;
+    z-index: 10 !important;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: var(--shadow-medium);
+    /* منع الإخفاء نهائياً */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    /* حماية إضافية */
+    isolation: isolate !important; /* عزل المخطط عن تأثيرات العناصر الأخرى */
+    contain: layout style !important; /* منع reflow */
+}
+
+#priceChart {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+/* 🔥 تأكد من ظهور المخطط في جميع اللغات والاتجاهات */
+[lang="ar"] .chart-container,
+[lang="en"] .chart-container, 
+[lang="tr"] .chart-container,
+[dir="rtl"] .chart-container,
+[dir="ltr"] .chart-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    direction: ltr !important;
+}
+
+/* 🔥 إصلاح اتجاه وعناصر المخطط الداخلية */
+.chartjs-render-monitor {
+    direction: ltr !important;
+}
+
+[dir="rtl"] #priceChart,
+[dir="rtl"] .chartjs-render-monitor {
+    direction: ltr !important;
+}
+
+/* 🔥 حماية إضافية ضد أي إخفاء */
+.chart-container * {
+    visibility: visible !important;
+}
+
+.chart-container:hover {
+    opacity: 1 !important;
+}
+
+/* 🔥 منع تأثير الأرقام العربية على المخطط والعناصر الأخرى */
+.price-card .card-value,
+#buyPrice,
+#sellPrice {
+    font-feature-settings: "tnum" !important; /* استخدام أرقام tabular */
+    font-variant-numeric: tabular-nums !important;
+    font-family: Arial, sans-serif !important;
+    direction: ltr !important;
+}
+
+/* 🔥 توحيد تنسيق الأرقام في جميع اللغات */
+[lang="ar"] .card-value,
+[lang="tr"] .card-value,
+[lang="en"] .card-value {
+    font-family: Arial, sans-serif !important;
+    direction: ltr !important;
+}
