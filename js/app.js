@@ -157,14 +157,6 @@ function formatNumber(num, currencyCode) {
     });
   }
 }
-  } else {
-    // معظم العملات - خانتان عشريتان
-    return number.toLocaleString(englishLocale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
-}
 
 // 🔥 دالة توحيد تنسيق الأرقام في الواجهة - جديدة
 function unifyNumberFormatting() {
