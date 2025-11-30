@@ -2,15 +2,7 @@
   "rewrites": [
     {
       "source": "/api/gold-prices",
-      "destination": "https://aswar-altin.onrender.com/api/gold-prices"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
+      "destination": "https://royal-limit-d5a2.mohamad1999mz.workers.dev/"
     }
   ]
 }
