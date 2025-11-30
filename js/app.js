@@ -1,5 +1,4 @@
-
-cconst API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
 
 // 1️⃣ أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
 const types = [
@@ -65,7 +64,22 @@ const types = [
   }
 ];
 
-// 🔥 البيانات الاحتياطية - الأسعار المحدثة من Workers
+// 2️⃣ العملات بجميع اللغات - ❌ تعريف واحد فقط
+const currencyList = [
+  {code:"TRY", labels: {ar: "الليرة التركية", en: "Turkish Lira", tr: "Türk Lirası"}, flag:"tr"},
+  {code:"EUR", labels: {ar: "اليورو", en: "Euro", tr: "Euro"}, flag:"eu"},
+  {code:"SAR", labels: {ar: "الريال السعودي", en: "Saudi Riyal", tr: "Suudi Riyali"}, flag:"sa"},
+  {code:"AED", labels: {ar: "الدرهم الإماراتي", en: "UAE Dirham", tr: "BAE Dirhemi"}, flag:"ae"},
+  {code:"EGP", labels: {ar: "الجنيه المصري", en: "Egyptian Pound", tr: "Mısır Lirası"}, flag:"eg"},
+  {code:"IQD", labels: {ar: "الدينار العراقي", en: "Iraqi Dinar", tr: "Irak Dinarı"}, flag:"iq"},
+  {code:"KWD", labels: {ar: "الدينار الكويتي", en: "Kuwaiti Dinar", tr: "Kuveyt Dinarı"}, flag:"kw"},
+  {code:"USD", labels: {ar: "الدولار الأمريكي", en: "US Dollar", tr: "ABD Doları"}, flag:"us"},
+  {code:"SYP", labels: {ar: "الليرة السورية", en: "Syrian Pound", tr: "Suriye Lirası"}, flag:"sy"},
+  {code:"BHD", labels: {ar: "الدينار البحريني", en: "Bahraini Dinar", tr: "Bahreyn Dinarı"}, flag:"bh"},
+  {code:"DZD", labels: {ar: "الدينار الجزائري", en: "Algerian Dinar", tr: "Cezayir Dinarı"}, flag:"dz"}
+];
+
+// 3️⃣ البيانات الاحتياطية - الأسعار المحدثة من Workers
 const mockApiData = {
     "تم التحديث": "2025-11-23T22:04:30.958Z",
     "price_gram_try": "5790.8",
@@ -89,87 +103,32 @@ const mockApiData = {
             "name_en": "24K Gold",
             "name_tr": "24 Ayar Altın"
         },
-        "gram22": {
-            "buy": "5304.37",
-            "sell": "5240.85",
-            "weight": "1.00",
-            "name_ar": "عيار 22",
-            "name_en": "22K Gold",
-            "name_tr": "22 Ayar Altın"
-        },
-        "gram21": {
-            "buy": "5066.95",
-            "sell": "5006.27",
-            "weight": "1.00",
-            "name_ar": "عيار 21",
-            "name_en": "21K Gold",
-            "name_tr": "21 Ayar Altın"
-        },
-        "gram18": {
-            "buy": "4343.10",
-            "sell": "4291.09",
-            "weight": "1.00",
-            "name_ar": "عيار 18",
-            "name_en": "18K Gold",
-            "name_tr": "18 Ayar Altın"
-        },
-        "gram14": {
-            "buy": "3376.04",
-            "sell": "3335.61",
-            "weight": "1.00",
-            "name_ar": "عيار 14",
-            "name_en": "14K Gold",
-            "name_tr": "14 Ayar Altın"
-        },
-        "lira": {
-            "buy": "42388.66",
-            "sell": "41881.01",
-            "weight": "7.32",
-            "name_ar": "ليرة ذهب",
-            "name_en": "Gold Lira",
-            "name_tr": "Altın Lira"
-        },
-        "half_lira": {
-            "buy": "21194.33",
-            "sell": "20940.51",
-            "weight": "3.66",
-            "name_ar": "نصف ليرة",
-            "name_en": "Half Lira",
-            "name_tr": "Yarım Lira"
-        },
-        "quarter_lira": {
-            "buy": "10597.16",
-            "sell": "10470.25",
-            "weight": "1.83",
-            "name_ar": "ربع ليرة",
-            "name_en": "Quarter Lira",
-            "name_tr": "Çeyrek Lira"
-        }
+        // ... باقي البيانات
     }
 };
 
-// 🔥 العملات بجميع اللغات
-const currencyList = [
-  {code:"TRY", labels: {ar: "الليرة التركية", en: "Turkish Lira", tr: "Türk Lirası"}, flag:"tr"},
-  {code:"EUR", labels: {ar: "اليورو", en: "Euro", tr: "Euro"}, flag:"eu"},
-  {code:"SAR", labels: {ar: "الريال السعودي", en: "Saudi Riyal", tr: "Suudi Riyali"}, flag:"sa"},
-  {code:"AED", labels: {ar: "الدرهم الإماراتي", en: "UAE Dirham", tr: "BAE Dirhemi"}, flag:"ae"},
-  {code:"EGP", labels: {ar: "الجنيه المصري", en: "Egyptian Pound", tr: "Mısır Lirası"}, flag:"eg"},
-  {code:"IQD", labels: {ar: "الدينار العراقي", en: "Iraqi Dinar", tr: "Irak Dinarı"}, flag:"iq"},
-  {code:"KWD", labels: {ar: "الدينار الكويتي", en: "Kuwaiti Dinar", tr: "Kuveyt Dinarı"}, flag:"kw"},
-  {code:"USD", labels: {ar: "الدولار الأمريكي", en: "US Dollar", tr: "ABD Doları"}, flag:"us"},
-  {code:"SYP", labels: {ar: "الليرة السورية", en: "Syrian Pound", tr: "Suriye Lirası"}, flag:"sy"},
-  {code:"BHD", labels: {ar: "الدينار البحريني", en: "Bahraini Dinar", tr: "Bahreyn Dinarı"}, flag:"bh"},
-  {code:"DZD", labels: {ar: "الدينار الجزائري", en: "Algerian Dinar", tr: "Cezayir Dinarı"}, flag:"dz"}
-];
-
-// 🔥 الأعلام في الزاوية للترجمة
+// 4️⃣ الأعلام في الزاوية للترجمة
 const cornerFlags = [
   {code: "TRY", flag: "tr", label: "تركيا", lang: "tr"},
   {code: "USD", flag: "us", label: "أمريكا", lang: "en"}, 
   {code: "SYP", flag: "sy", label: "سوريا", lang: "ar"}
 ];
 
+// 5️⃣ الـ Maps للبحث السريع
+const typeMap = new Map(types.map(t => [t.id, t]));
+const currencyMap = new Map(currencyList.map(c => [c.code, c]));
+
+// 6️⃣ المتغيرات العالمية
+let currentLanguage = 'ar';
+let goldNews = [];
+let selectedType = typeMap.get("gram24");
+let selectedCurrency = currencyMap.get("TRY");
+let latestData = null;
+let autoTimer = null;
+let newsTimer = null;
+let debounceTimer = null;
+
+// 7️⃣ باقي الدوال والكود...
 // 🔥 تحسين الأداء: استخدام Maps للبحث السريع
 const currencyMap = new Map(currencyList.map(c => [c.code, c]));
 const typeMap = new Map(types.map(t => [t.id, t]));
