@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/api/gold-prices",
+      "source": "/api/(.*)",
       "destination": "https://royal-limit-d5a2.mohamad1999mz.workers.dev/"
     }
   ]
