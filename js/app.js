@@ -4,8 +4,8 @@ const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
 // 🔧 المتغيرات العالمية (مرة واحدة فقط في الأعلى)
 let currentLanguage = 'ar';
 let goldNews = [];
-let selectedType = null;
-let selectedCurrency = null;
+let selectedType = typeMap.get("gram24") || types[0];  // 🔥 قيمة افتراضية
+let selectedCurrency = currencyMap.get("TRY") || currencyList[0];  // 🔥 قيمة افتراضية
 let latestData = null;
 let autoTimer = null;
 let newsTimer = null;
