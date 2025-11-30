@@ -1,6 +1,9 @@
 // chart.js - كود المخطط كاملاً مع البيانات الحقيقية
 console.log('✅ chart.js loaded - REAL DATA FROM SOURCE');
 
+// 🔥 استخدم نفس مصدر app.js للتساوي
+const CHART_API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+
 // 🔥 المتغيرات العامة
 let goldChart;
 let chartCurrentPeriod = 'week';
@@ -12,14 +15,38 @@ async function fetchHistoricalData() {
     try {
         console.log('📊 جلب البيانات التاريخية من المصدر...');
         
-        // جلب البيانات الحالية من الـWorker
-        const response = await fetch('https://royal-limit-d5a2.mohamad1999mz.workers.dev/');
+        // 🔥 استخدم المتغير الثابت بدل الرابط المباشر
+        const response = await fetch(CHART_API_BASE);
         const currentData = await response.json();
         
-        // إنشاء بيانات تاريخية واقعية بناء على السعر الحالي
-        const currentPrice = parseFloat(currentData.price_gram_try);
+        console.log('📊 البيانات المستلمة للمخطط:', currentData);
+        
+        // 🔥 معالجة الهيكل الجديد للبيانات
+        let currentPrice;
+        if (currentData.data && currentData.data.gold && currentData.data.gold.gram_24k) {
+            // الهيكل الجديد: data.gold.gram_24k.buy.TRY
+            currentPrice = parseFloat(currentData.data.gold.gram_24k.buy.TRY);
+            console.log('✅ استخدام الهيكل الجديد للبيانات');
+        } else if (currentData.price_gram_try) {
+            // الهيكل القديم: price_gram_try
+            currentPrice = parseFloat(currentData.price_gram_try);
+            console.log('✅ استخدام الهيكل القديم للبيانات');
+        } else {
+            // استخدام سعر افتراضي
+            currentPrice = 5864.17;
+            console.log('🔄 استخدام السعر الافتراضي');
+        }
+        
+        console.log('💰 السعر الأساسي للمخطط:', currentPrice);
+        
         const activeType = getActiveGoldType();
         const adjustedPrice = currentPrice * activeType.factor;
+        
+        console.log('🎯 السعر المعدل للنوع المحدد:', {
+            type: activeType.label,
+            factor: activeType.factor,
+            adjustedPrice: adjustedPrice
+        });
         
         // 🔥 إنشاء بيانات الأسبوع الماضي (7 أيام)
         const weekData = [];
@@ -79,7 +106,8 @@ async function fetchHistoricalData() {
             current: {
                 price: adjustedPrice,
                 date: today.toISOString().split('T')[0],
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                source: 'real-time-data'
             }
         };
         
@@ -729,4 +757,5 @@ document.addEventListener('DOMContentLoaded', function() {
         setupTypeChangeObserver();
         console.log('🎉 المخطط جاهز ببيانات حقيقية!');
     }, 1000);
+
 });
