@@ -1,4 +1,5 @@
 
+const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
 
 // 🔧 المتغيرات العالمية (مرة واحدة فقط في الأعلى)
 let currentLanguage = 'ar';
@@ -928,32 +929,28 @@ function debugCalculations() {
     console.log('🔢 النتائج المتوقعة:', { buy, sell });
 }
 
-// 🔥 دالة عرض الأسعار من البيانات - محدثة للبيانات الجديدة
+// 🔥 دالة عرض الأسعار من البيانات - محدثة للهيكل الجديد
 function renderPricesFromData(){ 
   // 🔥 أضف فحص الحسابات
   debugCalculations();
   
-  const gramTry = getGramBase() || 5790.8;
-  console.log('🔢 سعر الجرام الأساسي في render:', gramTry);
+  console.log('🔍 أحدث بيانات:', latestData);
   
-  let converted = gramTry; 
-  const cur = selectedCurrency.code; 
-  
-  // 🔥 جرب أولاً استخدام البيانات الجديدة متعددة العملات
-  if (latestData && latestData.gold_coins) {
-    const coinData = latestData.gold_coins;
-    let coinKey = selectedType.id;
+  // 🔥 أولاً: جرب البيانات الجديدة من المصدر (الهيكل الجديد)
+  if (latestData && latestData.data && latestData.data.gold) {
+    const goldData = latestData.data.gold;
+    const selectedGold = goldData[selectedType.id];
     
-    if (coinData[coinKey] && coinData[coinKey].buy && coinData[coinKey].buy[selectedCurrency.code]) {
-        // 🔥 استخدام الأسعار الجديدة متعددة العملات
-        const buy = parseFloat(coinData[coinKey].buy[selectedCurrency.code]);
-        const sell = parseFloat(coinData[coinKey].sell[selectedCurrency.code]);
-        
-        console.log('💰 استخدام الأسعار الجديدة من API:', { 
-            coinKey, 
-            currency: selectedCurrency.code,
-            buy, 
-            sell 
+    if (selectedGold && selectedGold.buy && selectedGold.sell) {
+      const buy = selectedGold.buy[selectedCurrency.code];
+      const sell = selectedGold.sell[selectedCurrency.code];
+      
+      if (buy && sell) {
+        console.log('💰 استخدام البيانات الحية الجديدة:', { 
+          type: selectedType.id, 
+          currency: selectedCurrency.code,
+          buy, 
+          sell 
         });
         
         // 🔥 حساب التغير بناء على السعر السابق
@@ -964,8 +961,8 @@ function renderPricesFromData(){
         const sellChangePercent = ((sell - previousSell) / previousSell) * 100;
         
         console.log('📊 التغير:', { 
-            previousBuy, previousSell, 
-            buyChangePercent, sellChangePercent 
+          previousBuy, previousSell, 
+          buyChangePercent, sellChangePercent 
         });
         
         // 🔥 تحديث الأسعار مع الأسهم
@@ -974,24 +971,51 @@ function renderPricesFromData(){
         
         const qty = parseFloat($("#qty")?.value) || 1; 
         const resultValue = sell * qty;
-        if ($("#result")) $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
-        
-        // 🔥 التحقق من التنبيهات
-        if (latestData && latestData.price_gram_try) {
-            const currentPrice = parseFloat(latestData.price_gram_try);
-            
-            // ✅ التحقق من وجود نظام التنبيهات قبل استخدامه
-            if (typeof priceAlerts !== 'undefined' && priceAlerts.checkAlerts) {
-                priceAlerts.checkAlerts(currentPrice, 'gram24', 'TRY');
-            }
+        if ($("#result")) {
+          $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
         }
         
         return; // توقف هنا لأننا استخدمنا البيانات الجديدة
+      }
     }
   }
   
-  // 🔥 إذا فشل الحصول على البيانات الجديدة، استخدم الحسابات القديمة
-  console.log('🔄 استخدام الحسابات القديمة...');
+  // 🔥 ثانياً: جرب البيانات القديمة (الهيكل القديم)
+  if (latestData && latestData.gold_coins) {
+    const coinData = latestData.gold_coins;
+    let coinKey = selectedType.id;
+    
+    if (coinData[coinKey] && coinData[coinKey].buy && coinData[coinKey].buy[selectedCurrency.code]) {
+      const buy = parseFloat(coinData[coinKey].buy[selectedCurrency.code]);
+      const sell = parseFloat(coinData[coinKey].sell[selectedCurrency.code]);
+      
+      console.log('💰 استخدام البيانات القديمة من API:', { 
+        coinKey, 
+        currency: selectedCurrency.code,
+        buy, 
+        sell 
+      });
+      
+      // تحديث الأسعار...
+      animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), 0, 'buy');
+      animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), 0, 'sell');
+      
+      const qty = parseFloat($("#qty")?.value) || 1; 
+      const resultValue = sell * qty;
+      if ($("#result")) {
+        $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
+      }
+      
+      return;
+    }
+  }
+  
+  // 🔥 أخيراً: استخدام البيانات المحلية إذا فشل كل شيء
+  console.log('🔄 استخدام البيانات المحلية...');
+  
+  const gramTry = getGramBase() || 5790.8;
+  let converted = gramTry; 
+  const cur = selectedCurrency.code; 
   
   if(latestData && latestData.fx && typeof latestData.fx === 'object'){ 
     const fxMap = new Map(Object.entries(latestData.fx));
@@ -1027,25 +1051,15 @@ function renderPricesFromData(){
   
   console.log('💰 الأسعار الاحتياطية:', { final, buy, sell });
   
-  // 🔥 حساب التغير بناء على السعر السابق للنسخة الاحتياطية
-  const previousBuy = parseFloat($("#buyPrice")?.textContent?.replace(/[^\d.]/g, '')) || buy;
-  const previousSell = parseFloat($("#sellPrice")?.textContent?.replace(/[^\d.]/g, '')) || sell;
-  
-  const buyChangePercent = ((buy - previousBuy) / previousBuy) * 100;
-  const sellChangePercent = ((sell - previousSell) / previousSell) * 100;
-  
-  console.log('📊 التغير الاحتياطي:', { 
-      previousBuy, previousSell, 
-      buyChangePercent, sellChangePercent 
-  });
-  
-  // 🔥 تحديث الأسعار مع الأسهم للنسخة الاحتياطية
-  animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), buyChangePercent, 'buy');
-  animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), sellChangePercent, 'sell');
+  // تحديث الأسعار النهائية
+  animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), 0, 'buy');
+  animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), 0, 'sell');
   
   const qty = parseFloat($("#qty")?.value) || 1; 
   const resultValue = sell * qty;
-  if ($("#result")) $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
+  if ($("#result")) {
+    $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
+  }
 }
 
 // 🔥 دالة تغيير نوع الذهب - تأكد من وجودها
