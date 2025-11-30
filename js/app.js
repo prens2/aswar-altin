@@ -1,5 +1,5 @@
 // AltinLira final app.js - COMPLETE VERSION WITH OPTIMIZATIONS
-const API_BASE = ('https://api.genelpara.com/embed/altin.json');
+const API_BASE = 'https://aswar-altin.onrender.com/api/gold-prices';
 
 // 🔧 المتغيرات العالمية (مرة واحدة فقط في الأعلى)
 let currentLanguage = 'ar';
