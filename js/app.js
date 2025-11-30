@@ -788,37 +788,67 @@ function buildUI(){
   });
   
   // 🟢 الكود الجديد - أزرار العملات المبسطة
-  setupCurrencyTabs();
-  
-  const sel = $("#unitSelect"); 
-  sel.innerHTML = ''; 
-  types.forEach(t => {
-    const o = document.createElement('option'); 
-    o.value = t.id; 
-    o.textContent = t.labels[currentLanguage] || t.labels.ar; 
-    sel.appendChild(o);
-  }); 
+setupCurrencyTabs();
+
+const sel = $("#unitSelect"); 
+sel.innerHTML = ''; 
+types.forEach(t => {
+  const o = document.createElement('option'); 
+  o.value = t.id; 
+  o.textContent = t.labels[currentLanguage] || t.labels.ar; 
+  sel.appendChild(o);
+}); 
+
+// 🔥 الإصلاح هنا - تحقق من وجود selectedType
+if (selectedType && selectedType.id) {
   sel.value = selectedType.id;
+} else {
+  // تعيين قيمة افتراضية إذا كان selectedType غير معرف
+  sel.value = "gram24";
+  selectedType = typeMap.get("gram24");
+  console.log('🔄 تعيين النوع الافتراضي: gram24');
+}
 }
 
 // 🔥 تعيين الواجهة النشطة
 function setActiveUI(){
   document.querySelectorAll('.type-pill').forEach(e => e.classList.remove('active')); 
-  const s = document.getElementById(selectedType.id); 
-  if(s) s.classList.add('active'); 
+  
+  // 🔥 تحقق من وجود selectedType قبل استخدامه
+  if (selectedType && selectedType.id) {
+    const s = document.getElementById(selectedType.id); 
+    if(s) s.classList.add('active'); 
+  } else {
+    // إذا لم يكن selectedType معرف، استخدم الافتراضي
+    selectedType = typeMap.get("gram24");
+    const s = document.getElementById("gram24"); 
+    if(s) s.classList.add('active');
+  }
   
   // 🟢 الكود الجديد بدلاً من flag-card القديم
   document.querySelectorAll('.currency-tab').forEach(tab => {
     tab.classList.remove('active');
-    if(tab.dataset.currency === selectedCurrency.code) {
+    if(selectedCurrency && tab.dataset.currency === selectedCurrency.code) {
       tab.classList.add('active');
     }
   });
   
-  document.querySelectorAll('.cur').forEach(e => e.textContent = selectedCurrency.code); 
-  $("#outCur").textContent = selectedCurrency.code; 
-  $("#outFlag").src = `https://flagcdn.com/w40/${selectedCurrency.flag}.png`; 
-  $("#unitSelect").value = selectedType.id;
+  document.querySelectorAll('.cur').forEach(e => {
+    if(selectedCurrency) {
+      e.textContent = selectedCurrency.code;
+    }
+  }); 
+  
+  if(selectedCurrency) {
+    $("#outCur").textContent = selectedCurrency.code; 
+    $("#outFlag").src = `https://flagcdn.com/w40/${selectedCurrency.flag}.png`;
+  }
+  
+  // 🔥 الإصلاح هنا أيضاً
+  const sel = $("#unitSelect");
+  if(sel && selectedType && selectedType.id) {
+    sel.value = selectedType.id;
+  }
 }
 
 // 🔥 دالة جلب البيانات من API
