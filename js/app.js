@@ -1,25 +1,7 @@
 
-const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+cconst API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
 
-// 1️⃣ البيانات الثابتة أولاً
-const types = [ /* ... */ ];
-const currencyList = [ /* ... */ ];
-
-// 2️⃣ الـ Maps ثانياً  
-const typeMap = new Map(types.map(t => [t.id, t]));
-const currencyMap = new Map(currencyList.map(c => [c.code, c]));
-
-// 3️⃣ المتغيرات العالمية أخيراً
-let currentLanguage = 'ar';
-let goldNews = [];
-let selectedType = typeMap.get("gram24");
-let selectedCurrency = currencyMap.get("TRY");
-let latestData = null;
-let autoTimer = null;
-let newsTimer = null;
-let debounceTimer = null;
-
- // 🔥 أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
+// 1️⃣ أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
 const types = [
   {
     id: "lira", 
