@@ -1,7 +1,5 @@
-const API_SOURCES = [
-    'https://aswar-altin.onrender.com/api/gold-prices',    // مصدرك الجديد على Render
-    'https://royal-limit-d5a2.mohamad1999mz.workers.dev/'  // المصدر القديم الاحتياطي
-];
+const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+
 // 1️⃣ أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
 const types = [
   {
