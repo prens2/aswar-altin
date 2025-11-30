@@ -1,5 +1,5 @@
 
-const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+
 // 🔧 المتغيرات العالمية (مرة واحدة فقط في الأعلى)
 let currentLanguage = 'ar';
 let goldNews = [];
