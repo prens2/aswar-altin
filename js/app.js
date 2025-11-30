@@ -850,29 +850,31 @@ function setActiveUI(){
   }
 }
 
-// 🔥 أصلح الدالة كاملة - من السطر 54
 async function fetchData() {
     try {
         setStatus('🔄 جاري التحديث...');
         
-        const response = await fetch(API_BASE);
-        if (!response.ok) throw new Error('فشل جلب البيانات');
+        // 🔥 جرب المصدر المباشر أولاً
+        const response = await fetch('https://royal-limit-d5a2.mohamad1999mz.workers.dev/');
+        if (response.ok) {
+            const data = await response.json();
+            latestData = data;
+            setStatus('✅ تم التحديث - بيانات حية');
+            updateLast(new Date().toISOString());
+            renderPricesFromData();
+            return;
+        }
         
-        const data = await response.json();
-        latestData = data;
-        
-        setStatus('✅ تم التحديث');
-        updateLast(data["تم التحديث"]);
-        renderPricesFromData();
+        throw new Error('فشل المصدر المباشر');
         
     } catch (error) {
-        console.error('❌ خطأ في جلب البيانات:', error);
+        console.error('❌ استخدام البيانات المحلية');
         setStatus('❌ استخدام البيانات المحلية');
-        
-        // استخدام البيانات المحلية المحدثة
         latestData = mockApiData;
         updateLast(mockApiData["تم التحديث"]);
         renderPricesFromData();
+    }
+}
         
         showNotification(
             currentLanguage === 'ar' ? 'استخدام البيانات المحلية المحدثة' : 
