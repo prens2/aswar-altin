@@ -1,4 +1,4 @@
-const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+const API_BASE = 'https://aswar-altin.onrender.com/api/gold-prices';
 
 // 1️⃣ أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
 const types = [
