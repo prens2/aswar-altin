@@ -64,7 +64,7 @@ const types = [
   }
 ];
 
-// 2️⃣ العملات بجميع اللغات - ❌ تعريف واحد فقط
+// 2️⃣ العملات بجميع اللغات
 const currencyList = [
   {code:"TRY", labels: {ar: "الليرة التركية", en: "Turkish Lira", tr: "Türk Lirası"}, flag:"tr"},
   {code:"EUR", labels: {ar: "اليورو", en: "Euro", tr: "Euro"}, flag:"eu"},
@@ -129,10 +129,6 @@ let newsTimer = null;
 let debounceTimer = null;
 
 // 7️⃣ باقي الدوال والكود...
-// 🔥 تحسين الأداء: استخدام Maps للبحث السريع
-const currencyMap = new Map(currencyList.map(c => [c.code, c]));
-const typeMap = new Map(types.map(t => [t.id, t]));
-
 // 🔥 دالة تنسيق الأرقام - تنسيق موحد لجميع اللغات
 function formatNumber(num, currencyCode) {
   if (isNaN(num) || num === null || num === undefined) return '0.00';
@@ -153,6 +149,14 @@ function formatNumber(num, currencyCode) {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3
     });
+  } else {
+    // معظم العملات - خانتان عشريتان
+    return number.toLocaleString(englishLocale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+}
   } else {
     // معظم العملات - خانتان عشريتان
     return number.toLocaleString(englishLocale, {
