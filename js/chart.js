@@ -15,24 +15,19 @@ async function fetchHistoricalData() {
     try {
         console.log('📊 جلب البيانات التاريخية من المصدر...');
         
-        // 🔥 استخدم المتغير الثابت بدل الرابط المباشر
         const response = await fetch(CHART_API_BASE);
         const currentData = await response.json();
         
         console.log('📊 البيانات المستلمة للمخطط:', currentData);
         
-        // 🔥 معالجة الهيكل الجديد للبيانات
         let currentPrice;
         if (currentData.data && currentData.data.gold && currentData.data.gold.gram_24k) {
-            // الهيكل الجديد: data.gold.gram_24k.buy.TRY
             currentPrice = parseFloat(currentData.data.gold.gram_24k.buy.TRY);
             console.log('✅ استخدام الهيكل الجديد للبيانات');
         } else if (currentData.price_gram_try) {
-            // الهيكل القديم: price_gram_try
             currentPrice = parseFloat(currentData.price_gram_try);
             console.log('✅ استخدام الهيكل القديم للبيانات');
         } else {
-            // استخدام سعر افتراضي
             currentPrice = 5864.17;
             console.log('🔄 استخدام السعر الافتراضي');
         }
@@ -56,7 +51,6 @@ async function fetchHistoricalData() {
             const date = new Date();
             date.setDate(today.getDate() - i);
             
-            // تغير واقعي ±2% لكل يوم
             const dailyChange = (Math.random() * 4 - 2) / 100;
             const historicalPrice = adjustedPrice * (1 + dailyChange);
             
@@ -188,19 +182,61 @@ function getRealPricesFromData(period) {
     return historicalData[period].map(item => item.price);
 }
 
-// 6. 🔥 دالة تحديث المخطط ببيانات حقيقية
+// 6. 🔥 دالة إنشاء واجهة المخطط بالكامل
+function createChartInterface() {
+    const chartSection = document.querySelector('.chart-section');
+    if (!chartSection) {
+        console.log('❌ قسم المخطط غير موجود، جرب مرة أخرى...');
+        setTimeout(createChartInterface, 500);
+        return;
+    }
+
+    // تنظيف المحتوى القديم إذا وجد
+    const oldChartBox = chartSection.querySelector('.chart-box');
+    const oldTimeButtons = chartSection.querySelector('.time-buttons');
+    const oldSyncInfo = chartSection.querySelector('.chart-sync-info');
+    
+    if (oldChartBox) oldChartBox.remove();
+    if (oldTimeButtons) oldTimeButtons.remove();
+    if (oldSyncInfo) oldSyncInfo.remove();
+
+    // إنشاء واجهة المخطط بالكامل
+    chartSection.innerHTML += `
+        <div class="chart-sync-info" style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; padding: 10px 15px; margin: 10px 0; text-align: center; font-family: Tajawal, sans-serif;">
+            <div class="sync-indicator" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; font-size: 14px; color: #666;">
+                <span class="sync-icon">🔄</span>
+                <span class="sync-text" id="syncText">المخطط متزامن مع النوع المحدد</span>
+            </div>
+            <div class="current-type-info" id="currentTypeInfo" style="font-size: 13px; color: #333; font-weight: 500;">
+                جاري التحميل...
+            </div>
+        </div>
+
+        <div class="time-buttons" style="display: flex; gap: 10px; margin: 15px 0; justify-content: center; flex-wrap: wrap;">
+            <button class="time-btn active" data-period="week" style="padding: 8px 16px; border: 2px solid #FFD700; background: #FFD700; color: white; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">أسبوع</button>
+            <button class="time-btn" data-period="month" style="padding: 8px 16px; border: 2px solid #FFD700; background: white; color: #FFD700; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">شهر</button>
+            <button class="time-btn" data-period="3months" style="padding: 8px 16px; border: 2px solid #FFD700; background: white; color: #FFD700; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">3 أشهر</button>
+        </div>
+
+        <div class="chart-box" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 15px 0;">
+            <canvas id="priceChart" style="width: 100%; height: 400px;"></canvas>
+        </div>
+    `;
+
+    console.log('✅ واجهة المخطط تم إنشاؤها بالكامل');
+}
+
+// 7. 🔥 دالة تحديث المخطط ببيانات حقيقية
 async function refreshChartWithRealData() {
     try {
         console.log('🔄 تحديث المخطط ببيانات حقيقية...');
         
-        // جلب البيانات التاريخية أولاً
         await fetchHistoricalData();
         
         const activeType = getActiveGoldType();
         const currentData = historicalData.current;
         
         if (goldChart) {
-            // تحديث البيانات مع المعلومات الحقيقية
             goldChart.data.labels = getChartLabelsFromData(chartCurrentPeriod);
             goldChart.data.datasets[0].data = getRealPricesFromData(chartCurrentPeriod);
             goldChart.data.datasets[0].borderColor = activeType.color;
@@ -215,24 +251,7 @@ async function refreshChartWithRealData() {
             
             goldChart.data.datasets[0].label = labels[chartCurrentLanguage] || labels.ar;
             
-            // إضافة سعر اليوم الحالي كمعلومة إضافية
-            const currentPriceText = {
-                ar: `السعر الحالي: ${currentData.price.toLocaleString('en-US')} TRY`,
-                en: `Current Price: ${currentData.price.toLocaleString('en-US')} TRY`,
-                tr: `Mevcut Fiyat: ${currentData.price.toLocaleString('en-US')} TRY`
-            };
-            
-            // تحديث خيارات المخطط لإظهار السعر الحالي
-            goldChart.options.plugins.tooltip = {
-                callbacks: {
-                    afterBody: function(context) {
-                        return currentPriceText[chartCurrentLanguage] || currentPriceText.ar;
-                    }
-                }
-            };
-            
             goldChart.update('none');
-            
         } else {
             initializeGoldChartWithRealData();
         }
@@ -244,20 +263,20 @@ async function refreshChartWithRealData() {
         
     } catch (error) {
         console.error('❌ خطأ في تحديث المخطط:', error);
-        // العودة للبيانات الوهمية في حالة الخطأ
         refreshChart();
     }
 }
 
-// 7. 🔥 دالة تهيئة المخطط ببيانات حقيقية
+// 8. 🔥 دالة تهيئة المخطط ببيانات حقيقية
 async function initializeGoldChartWithRealData() {
     const chartElement = document.getElementById('priceChart');
     if (!chartElement) {
+        console.log('❌ عنصر المخطط غير موجود، إنشاء الواجهة أولاً...');
+        createChartInterface();
         setTimeout(initializeGoldChartWithRealData, 500);
         return;
     }
     
-    // جلب البيانات الحقيقية أولاً
     await fetchHistoricalData();
     
     const activeType = getActiveGoldType();
@@ -275,128 +294,123 @@ async function initializeGoldChartWithRealData() {
         tr: `Altın Fiyatı - ${activeType.label}`
     };
     
-     // 🔥 إصلاح التلميحات في خيارات المخطط - استبدل هذا الجزء
-goldChart = new Chart(chartElement, {
-    type: 'line',
-    data: {
-        labels: getChartLabelsFromData('week'),
-        datasets: [{
-            label: labels[chartCurrentLanguage] || labels.ar,
-            data: getRealPricesFromData('week'),
-            borderColor: activeType.color,
-            backgroundColor: activeType.color + '20',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: activeType.color,
-            pointBorderColor: '#FFFFFF',
-            pointBorderWidth: 2,
-            pointRadius: 6,
-            pointHoverRadius: 8
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-            intersect: false, // 🔥 مهم: يسمح بالتلميحات بدون الضغط المباشر على النقاط
-            mode: 'index'
-        },
-        plugins: {
-            legend: {
-                display: true,
-                labels: {
-                    font: { family: 'Tajawal, Arial, sans-serif', size: 14 },
-                    color: '#333'
-                }
-            },
-            tooltip: {
-                enabled: true, // 🔥 تأكد من تفعيل التلميحات
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: '#FFFFFF',
-                bodyColor: '#FFFFFF',
+    goldChart = new Chart(chartElement, {
+        type: 'line',
+        data: {
+            labels: getChartLabelsFromData('week'),
+            datasets: [{
+                label: labels[chartCurrentLanguage] || labels.ar,
+                data: getRealPricesFromData('week'),
                 borderColor: activeType.color,
-                borderWidth: 1,
-                cornerRadius: 8,
-                displayColors: true,
-                callbacks: {
-                    title: function(context) {
-                        // 🔥 عنوان التلميحة - اسم اليوم أو الفترة
-                        const index = context[0].dataIndex;
-                        const periodData = historicalData[chartCurrentPeriod];
-                        if (periodData && periodData[index]) {
-                            if (chartCurrentPeriod === 'week') return periodData[index].day;
-                            if (chartCurrentPeriod === 'month') return periodData[index].week;
-                            if (chartCurrentPeriod === '3months') return periodData[index].month;
-                            return periodData[index].date;
-                        }
-                        return '';
-                    },
-                    label: function(context) {
-                        // 🔥 تسمية السعر
-                        const price = context.parsed.y;
-                        const priceText = {
-                            ar: `السعر: ${price.toLocaleString('en-US')} TRY`,
-                            en: `Price: ${price.toLocaleString('en-US')} TRY`,
-                            tr: `Fiyat: ${price.toLocaleString('en-US')} TRY`
-                        };
-                        return priceText[chartCurrentLanguage] || priceText.ar;
-                    },
-                    afterBody: function(context) {
-                        // 🔥 معلومات إضافية بعد السعر
-                        const currentPriceText = {
-                            ar: `السعر الحالي: ${currentData.price.toLocaleString('en-US')} TRY`,
-                            en: `Current Price: ${currentData.price.toLocaleString('en-US')} TRY`,
-                            tr: `Mevcut Fiyat: ${currentData.price.toLocaleString('en-US')} TRY`
-                        };
-                        return [currentPriceText[chartCurrentLanguage] || currentPriceText.ar];
-                    }
-                }
-            }
+                backgroundColor: activeType.color + '20',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: activeType.color,
+                pointBorderColor: '#FFFFFF',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
         },
-        scales: {
-            y: {
-                beginAtZero: false,
-                grid: { 
-                    color: 'rgba(0,0,0,0.1)',
-                    drawBorder: false
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        font: { family: 'Tajawal, Arial, sans-serif', size: 14 },
+                        color: '#333'
+                    }
                 },
-                ticks: {
-                    font: { family: 'Tajawal, Arial, sans-serif' },
-                    callback: function(value) {
-                        return value.toLocaleString('en-US') + ' TRY';
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#FFFFFF',
+                    borderColor: activeType.color,
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        title: function(context) {
+                            const index = context[0].dataIndex;
+                            const periodData = historicalData[chartCurrentPeriod];
+                            if (periodData && periodData[index]) {
+                                if (chartCurrentPeriod === 'week') return periodData[index].day;
+                                if (chartCurrentPeriod === 'month') return periodData[index].week;
+                                if (chartCurrentPeriod === '3months') return periodData[index].month;
+                                return periodData[index].date;
+                            }
+                            return '';
+                        },
+                        label: function(context) {
+                            const price = context.parsed.y;
+                            const priceText = {
+                                ar: `السعر: ${price.toLocaleString('en-US')} TRY`,
+                                en: `Price: ${price.toLocaleString('en-US')} TRY`,
+                                tr: `Fiyat: ${price.toLocaleString('en-US')} TRY`
+                            };
+                            return priceText[chartCurrentLanguage] || priceText.ar;
+                        },
+                        afterBody: function(context) {
+                            const currentPriceText = {
+                                ar: `السعر الحالي: ${currentData.price.toLocaleString('en-US')} TRY`,
+                                en: `Current Price: ${currentData.price.toLocaleString('en-US')} TRY`,
+                                tr: `Mevcut Fiyat: ${currentData.price.toLocaleString('en-US')} TRY`
+                            };
+                            return [currentPriceText[chartCurrentLanguage] || currentPriceText.ar];
+                        }
                     }
                 }
             },
-            x: {
-                grid: { 
-                    color: 'rgba(0,0,0,0.1)',
-                    drawBorder: false
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: { 
+                        color: 'rgba(0,0,0,0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: { family: 'Tajawal, Arial, sans-serif' },
+                        callback: function(value) {
+                            return value.toLocaleString('en-US') + ' TRY';
+                        }
+                    }
                 },
-                ticks: {
-                    font: { family: 'Tajawal, Arial, sans-serif' }
+                x: {
+                    grid: { 
+                        color: 'rgba(0,0,0,0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: { family: 'Tajawal, Arial, sans-serif' }
+                    }
                 }
+            },
+            elements: {
+                point: {
+                    hoverBackgroundColor: activeType.color,
+                    hoverBorderColor: '#FFFFFF',
+                    hoverBorderWidth: 3
+                }
+            },
+            hover: {
+                animationDuration: 0
             }
-        },
-        // 🔥 إعدادات إضافية لتحسين التفاعل
-        elements: {
-            point: {
-                hoverBackgroundColor: activeType.color,
-                hoverBorderColor: '#FFFFFF',
-                hoverBorderWidth: 3
-            }
-        },
-        hover: {
-            animationDuration: 0 // 🔥 إزالة التأخير في التلميحات
         }
-    }
-});
+    });
     
     updateChartTitle();
     console.log('✅ المخطط تم تحميله ببيانات حقيقية!');
 }
 
-// 8. 🔥 استبدال الدوال القديمة بالجديدة
+// 9. 🔥 استبدال الدوال القديمة بالجديدة
 function refreshChart() {
     refreshChartWithRealData();
 }
@@ -405,88 +419,22 @@ function initializeGoldChart() {
     initializeGoldChartWithRealData();
 }
 
-// 9. 🔥 تحديث دالة تغيير الفترة
+// 10. 🔥 تحديث دالة تغيير الفترة
 function updateChartPeriod(period) {
     document.querySelectorAll('.time-btn').forEach(btn => {
         btn.classList.remove('active');
+        btn.style.background = 'white';
+        btn.style.color = '#FFD700';
+        
         if (btn.dataset.period === period) {
             btn.classList.add('active');
+            btn.style.background = '#FFD700';
+            btn.style.color = 'white';
         }
     });
     
     chartCurrentPeriod = period;
     refreshChartWithRealData();
-}
-
-// 10. 🔥 دالة إنشاء زر التزامن
-function createSyncButton() {
-    const chartSection = document.querySelector('.chart-section');
-    if (!chartSection) {
-        console.log('❌ قسم المخطط غير موجود');
-        return;
-    }
-
-    // تحقق إذا كان الزر موجود مسبقاً
-    if (document.querySelector('.chart-sync-info')) {
-        console.log('✅ زر التزامن موجود مسبقاً');
-        return;
-    }
-
-    const syncButton = document.createElement('div');
-    syncButton.className = 'chart-sync-info';
-    syncButton.innerHTML = `
-        <div class="sync-indicator">
-            <span class="sync-icon">🔄</span>
-            <span class="sync-text" id="syncText">المخطط متزامن مع النوع المحدد</span>
-        </div>
-        <div class="current-type-info" id="currentTypeInfo">
-            جاري التحميل...
-        </div>
-    `;
-
-    // إضافة الأنماط
-    syncButton.style.cssText = `
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        border-radius: 8px;
-        padding: 10px 15px;
-        margin: 10px 0;
-        text-align: center;
-        font-family: Tajawal, sans-serif;
-    `;
-
-    const syncIndicator = syncButton.querySelector('.sync-indicator');
-    syncIndicator.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 5px;
-        font-size: 14px;
-        color: #666;
-    `;
-
-    const currentTypeInfo = syncButton.querySelector('.current-type-info');
-    currentTypeInfo.style.cssText = `
-        font-size: 13px;
-        color: #333;
-        font-weight: 500;
-    `;
-
-    // البحث عن مكان إدراج الزر
-    const chartBox = chartSection.querySelector('.chart-box');
-    const chartTitle = chartSection.querySelector('h3');
-    
-    if (chartBox) {
-        chartSection.insertBefore(syncButton, chartBox);
-    } else if (chartTitle) {
-        chartSection.insertBefore(syncButton, chartTitle.nextSibling);
-    } else {
-        chartSection.prepend(syncButton);
-    }
-
-    console.log('✅ زر التزامن تم إنشاؤه بنجاح');
-    updateSyncInfo();
 }
 
 // 11. 🔥 دالة تحديث معلومات التزامن
@@ -524,12 +472,12 @@ function updateSyncInfo() {
 
 // 12. 🔥 دالة إعداد أحداث المخطط
 function setupChartEvents() {
+    // إعداد أحداث أزرار الفترة الزمنية
     const timeButtons = document.querySelectorAll('.time-btn');
     
     if (timeButtons.length === 0) {
-        console.log('❌ أزرار الفترة الزمنية غير موجودة');
-        // أنشئ الأزرار تلقائياً إذا لم تكن موجودة
-        createTimeButtons();
+        console.log('❌ أزرار الفترة الزمنية غير موجودة، جرب مرة أخرى...');
+        setTimeout(setupChartEvents, 500);
         return;
     }
     
@@ -540,105 +488,43 @@ function setupChartEvents() {
                 updateChartPeriod(period);
             }
         });
-    });
-    
-    console.log('✅ أحداث المخطط تم إعدادها');
-}
-
-// 13. 🔥 دالة إنشاء أزرار الفترة الزمنية إذا لم تكن موجودة
-function createTimeButtons() {
-    const chartSection = document.querySelector('.chart-section');
-    if (!chartSection) return;
-    
-    // تحقق إذا كانت الأزرار موجودة مسبقاً
-    if (document.querySelector('.time-buttons')) return;
-    
-    const timeButtonsContainer = document.createElement('div');
-    timeButtonsContainer.className = 'time-buttons';
-    timeButtonsContainer.style.cssText = `
-        display: flex;
-        gap: 10px;
-        margin: 15px 0;
-        justify-content: center;
-        flex-wrap: wrap;
-    `;
-    
-    const periods = [
-        { period: 'week', ar: 'أسبوع', en: 'Week', tr: 'Hafta' },
-        { period: 'month', ar: 'شهر', en: 'Month', tr: 'Ay' },
-        { period: '3months', ar: '3 أشهر', en: '3 Months', tr: '3 Ay' }
-    ];
-    
-    periods.forEach((item, index) => {
-        const button = document.createElement('button');
-        button.className = `time-btn ${index === 0 ? 'active' : ''}`;
-        button.dataset.period = item.period;
-        button.textContent = item[chartCurrentLanguage] || item.ar;
         
-        button.style.cssText = `
-            padding: 8px 16px;
-            border: 2px solid #FFD700;
-            background: ${index === 0 ? '#FFD700' : 'white'};
-            color: ${index === 0 ? 'white' : '#FFD700'};
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: Tajawal, sans-serif;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        `;
-        
-        button.addEventListener('mouseenter', function() {
+        // إضافة تأثيرات Hover
+        btn.addEventListener('mouseenter', function() {
             if (!this.classList.contains('active')) {
                 this.style.background = '#FFF9C4';
             }
         });
         
-        button.addEventListener('mouseleave', function() {
+        btn.addEventListener('mouseleave', function() {
             if (!this.classList.contains('active')) {
                 this.style.background = 'white';
             }
         });
-        
-        timeButtonsContainer.appendChild(button);
     });
     
-    // إدراج الأزرار في المكان المناسب
-    const syncInfo = document.querySelector('.chart-sync-info');
-    const chartBox = document.querySelector('.chart-box');
-    
-    if (syncInfo) {
-        chartSection.insertBefore(timeButtonsContainer, syncInfo.nextSibling);
-    } else if (chartBox) {
-        chartSection.insertBefore(timeButtonsContainer, chartBox);
-    } else {
-        chartSection.appendChild(timeButtonsContainer);
-    }
-    
-    console.log('✅ أزرار الفترة الزمنية تم إنشاؤها');
+    console.log('✅ أحداث المخطط تم إعدادها');
 }
 
-// 14. 🔥 دالة مراقبة تغييرات أنواع الذهب
+// 13. 🔥 دالة مراقبة تغييرات أنواع الذهب
 function setupTypeChangeObserver() {
     const typePills = document.querySelectorAll('.type-pill');
     
     if (typePills.length === 0) {
-        console.log('❌ أزرار أنواع الذهب غير موجودة');
-        // حاول مرة أخرى بعد وقت إذا لم تكن جاهزة
+        console.log('❌ أزرار أنواع الذهب غير موجودة، جرب مرة أخرى...');
         setTimeout(setupTypeChangeObserver, 1000);
         return;
     }
     
     typePills.forEach(pill => {
-        // إزالة أي أحداث سابقة لمنع التكرار
         pill.removeEventListener('click', handleTypeChange);
-        // إضافة الحدث الجديد
         pill.addEventListener('click', handleTypeChange);
     });
     
     console.log('✅ مراقبة تغييرات الأنواع تم إعدادها');
 }
 
-// 15. 🔥 دالة معالجة تغيير النوع
+// 14. 🔥 دالة معالجة تغيير النوع
 function handleTypeChange() {
     setTimeout(() => {
         console.log('🔄 تغيير نوع الذهب، تحديث المخطط...');
@@ -646,7 +532,7 @@ function handleTypeChange() {
     }, 300);
 }
 
-// 16. 🔥 دالة كشف اللغة
+// 15. 🔥 دالة كشف اللغة
 function detectChartLanguage() {
     const htmlLang = document.documentElement.getAttribute('lang');
     if (htmlLang) {
@@ -655,7 +541,6 @@ function detectChartLanguage() {
         return 'ar';
     }
     
-    // كشف من النصوص في الصفحة
     const arabicText = document.querySelector('[lang="ar"]');
     const englishText = document.querySelector('[lang="en"]');
     const turkishText = document.querySelector('[lang="tr"]');
@@ -667,7 +552,7 @@ function detectChartLanguage() {
     return 'ar';
 }
 
-// 17. 🔥 دالة الحصول على النوع النشط
+// 16. 🔥 دالة الحصول على النوع النشط
 function getActiveGoldType() {
     const activePill = document.querySelector('.type-pill.active');
     if (!activePill) return getDefaultType();
@@ -683,7 +568,7 @@ function getActiveGoldType() {
     };
 }
 
-// 18. 🔥 الدوال المساعدة
+// 17. 🔥 الدوال المساعدة
 function getFactorForType(typeId) {
     const factors = {
         'gram24': 1.00, 'gram22': 0.916, 'gram21': 0.875, 'gram18': 0.750,
@@ -710,13 +595,12 @@ function getDefaultType() {
     };
 }
 
-// 19. 🔥 دالة الحصول على السعر الحالي من الواجهة
+// 18. 🔥 دالة الحصول على السعر الحالي من الواجهة
 function getCurrentGoldPrice() {
     const buyPriceElement = document.getElementById('buyPrice');
     if (buyPriceElement && buyPriceElement.textContent !== '-') {
         let priceText = buyPriceElement.textContent;
         
-        // معالجة النص لاستخراج الرقم
         priceText = priceText
             .replace(/[٬,٫.]/g, '')
             .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
@@ -724,12 +608,12 @@ function getCurrentGoldPrice() {
             .replace(/\s/g, '');
         
         const price = parseFloat(priceText);
-        return price || 5790.80; // سعر افتراضي
+        return price || 5790.80;
     }
     return 5790.80;
 }
 
-// 20. 🔥 دالة تحديث عنوان المخطط
+// 19. 🔥 دالة تحديث عنوان المخطط
 function updateChartTitle() {
     const titleElement = document.querySelector('.chart-section h3');
     if (titleElement) {
@@ -746,16 +630,23 @@ function updateChartTitle() {
     }
 }
 
-// 21. 🔥 التهيئة الرئيسية
+// 20. 🔥 التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 بدء تحميل المخطط ببيانات حقيقية...');
     
     setTimeout(async () => {
-        createSyncButton();
+        // إنشاء واجهة المخطط أولاً
+        createChartInterface();
+        
+        // ثم تهيئة المخطط والأحداث
         await initializeGoldChartWithRealData();
         setupChartEvents();
         setupTypeChangeObserver();
+        
         console.log('🎉 المخطط جاهز ببيانات حقيقية!');
     }, 1000);
-
 });
+
+// 21. 🔥 جعل الدوال متاحة globally للاستدعاء من ملفات أخرى
+window.refreshGoldChart = refreshChartWithRealData;
+window.updateGoldChartPeriod = updateChartPeriod;
