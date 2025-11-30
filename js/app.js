@@ -1,11 +1,19 @@
 
 const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
 
-// 🔧 المتغيرات العالمية (مرة واحدة فقط في الأعلى)
+// 1️⃣ البيانات الثابتة أولاً
+const types = [ /* ... */ ];
+const currencyList = [ /* ... */ ];
+
+// 2️⃣ الـ Maps ثانياً  
+const typeMap = new Map(types.map(t => [t.id, t]));
+const currencyMap = new Map(currencyList.map(c => [c.code, c]));
+
+// 3️⃣ المتغيرات العالمية أخيراً
 let currentLanguage = 'ar';
 let goldNews = [];
-let selectedType = typeMap.get("gram24") || types[0];  // 🔥 قيمة افتراضية
-let selectedCurrency = currencyMap.get("TRY") || currencyList[0];  // 🔥 قيمة افتراضية
+let selectedType = typeMap.get("gram24");
+let selectedCurrency = currencyMap.get("TRY");
 let latestData = null;
 let autoTimer = null;
 let newsTimer = null;
