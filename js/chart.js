@@ -9,6 +9,9 @@ let goldChart;
 let chartCurrentPeriod = 'week';
 let chartCurrentLanguage = 'ar';
 let historicalData = [];
+let typeChangeObserver;
+let initializationAttempts = 0;
+const MAX_INIT_ATTEMPTS = 10;
 
 // 1. دالة جلب البيانات التاريخية من الـWorker
 async function fetchHistoricalData() {
@@ -192,41 +195,91 @@ function createChartInterface() {
     }
 
     // تنظيف المحتوى القديم إذا وجد
-    const oldChartBox = chartSection.querySelector('.chart-box');
     const oldTimeButtons = chartSection.querySelector('.time-buttons');
     const oldSyncInfo = chartSection.querySelector('.chart-sync-info');
     
-    if (oldChartBox) oldChartBox.remove();
     if (oldTimeButtons) oldTimeButtons.remove();
     if (oldSyncInfo) oldSyncInfo.remove();
 
-    // إنشاء واجهة المخطط بالكامل
-    chartSection.innerHTML += `
-        <div class="chart-sync-info" style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; padding: 10px 15px; margin: 10px 0; text-align: center; font-family: Tajawal, sans-serif;">
-            <div class="sync-indicator" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; font-size: 14px; color: #666;">
-                <span class="sync-icon">🔄</span>
-                <span class="sync-text" id="syncText">المخطط متزامن مع النوع المحدد</span>
+    // إنشاء أزرار الفترة الزمنية ومعلومات التزامن
+    const chartDescription = chartSection.querySelector('.chart-description');
+    
+    if (chartDescription && !chartSection.querySelector('.time-buttons')) {
+        const timeButtonsHTML = `
+            <div class="time-buttons" style="display: flex; gap: 10px; margin: 15px 0; justify-content: center; flex-wrap: wrap;">
+                <button class="time-btn active" data-period="week" style="padding: 8px 16px; border: 2px solid #FFD700; background: #FFD700; color: white; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">أسبوع</button>
+                <button class="time-btn" data-period="month" style="padding: 8px 16px; border: 2px solid #FFD700; background: white; color: #FFD700; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">شهر</button>
+                <button class="time-btn" data-period="3months" style="padding: 8px 16px; border: 2px solid #FFD700; background: white; color: #FFD700; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">3 أشهر</button>
             </div>
-            <div class="current-type-info" id="currentTypeInfo" style="font-size: 13px; color: #333; font-weight: 500;">
-                جاري التحميل...
+        `;
+        
+        const syncInfoHTML = `
+            <div class="chart-sync-info" style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 8px; padding: 10px 15px; margin: 10px 0; text-align: center; font-family: Tajawal, sans-serif;">
+                <div class="sync-indicator" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; font-size: 14px; color: #666;">
+                    <span class="sync-icon">🔄</span>
+                    <span class="sync-text" id="syncText">المخطط متزامن مع النوع المحدد</span>
+                </div>
+                <div class="current-type-info" id="currentTypeInfo" style="font-size: 13px; color: #333; font-weight: 500;">
+                    جاري التحميل...
+                </div>
             </div>
-        </div>
+        `;
 
-        <div class="time-buttons" style="display: flex; gap: 10px; margin: 15px 0; justify-content: center; flex-wrap: wrap;">
-            <button class="time-btn active" data-period="week" style="padding: 8px 16px; border: 2px solid #FFD700; background: #FFD700; color: white; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">أسبوع</button>
-            <button class="time-btn" data-period="month" style="padding: 8px 16px; border: 2px solid #FFD700; background: white; color: #FFD700; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">شهر</button>
-            <button class="time-btn" data-period="3months" style="padding: 8px 16px; border: 2px solid #FFD700; background: white; color: #FFD700; border-radius: 20px; cursor: pointer; font-family: Tajawal, sans-serif; font-size: 14px; transition: all 0.3s ease;">3 أشهر</button>
-        </div>
-
-        <div class="chart-box" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 15px 0;">
-            <canvas id="priceChart" style="width: 100%; height: 400px;"></canvas>
-        </div>
-    `;
+        chartDescription.insertAdjacentHTML('afterend', timeButtonsHTML + syncInfoHTML);
+    }
 
     console.log('✅ واجهة المخطط تم إنشاؤها بالكامل');
 }
 
-// 7. 🔥 دالة تحديث المخطط ببيانات حقيقية
+// 7. 🔥 دالة مراقبة تغييرات أنواع الذهب (محسنة)
+function setupTypeChangeObserver() {
+    initializationAttempts++;
+    
+    if (initializationAttempts > MAX_INIT_ATTEMPTS) {
+        console.log('❌ تجاوز الحد الأقصى لمحاولات إعداد مراقبة الأنواع');
+        return;
+    }
+
+    // ابحث عن أزرار أنواع الذهب في عدة أماكن محتملة
+    const typePills = document.querySelectorAll('.type-pill, .gold-type, .type-item, [id*="gram"], [class*="type"]');
+    
+    if (typePills.length === 0) {
+        console.log(`❌ أزرار أنواع الذهب غير موجودة (المحاولة ${initializationAttempts}/${MAX_INIT_ATTEMPTS})`);
+        
+        // حاول مرة أخرى بعد وقت إذا لم تكن جاهزة
+        setTimeout(setupTypeChangeObserver, 1000);
+        return;
+    }
+
+    console.log(`✅ تم العثور على ${typePills.length} من أزرار أنواع الذهب`);
+    
+    // إعداد الأحداث لأزرار أنواع الذهب
+    typePills.forEach(pill => {
+        // إزالة أي أحداث سابقة لمنع التكرار
+        const newPill = pill.cloneNode(true);
+        pill.parentNode.replaceChild(newPill, pill);
+        
+        // إضافة الحدث الجديد
+        newPill.addEventListener('click', function() {
+            setTimeout(() => {
+                console.log('🔄 تغيير نوع الذهب، تحديث المخطط...');
+                refreshChartWithRealData();
+            }, 500);
+        });
+    });
+
+    console.log('✅ مراقبة تغييرات الأنواع تم إعدادها بنجاح');
+}
+
+// 8. 🔥 دالة معالجة تغيير النوع
+function handleTypeChange() {
+    setTimeout(() => {
+        console.log('🔄 تغيير نوع الذهب، تحديث المخطط...');
+        refreshChartWithRealData();
+    }, 300);
+}
+
+// 9. 🔥 دالة تحديث المخطط ببيانات حقيقية
 async function refreshChartWithRealData() {
     try {
         console.log('🔄 تحديث المخطط ببيانات حقيقية...');
@@ -267,7 +320,7 @@ async function refreshChartWithRealData() {
     }
 }
 
-// 8. 🔥 دالة تهيئة المخطط ببيانات حقيقية
+// 10. 🔥 دالة تهيئة المخطط ببيانات حقيقية
 async function initializeGoldChartWithRealData() {
     const chartElement = document.getElementById('priceChart');
     if (!chartElement) {
@@ -410,7 +463,7 @@ async function initializeGoldChartWithRealData() {
     console.log('✅ المخطط تم تحميله ببيانات حقيقية!');
 }
 
-// 9. 🔥 استبدال الدوال القديمة بالجديدة
+// 11. 🔥 استبدال الدوال القديمة بالجديدة
 function refreshChart() {
     refreshChartWithRealData();
 }
@@ -419,7 +472,7 @@ function initializeGoldChart() {
     initializeGoldChartWithRealData();
 }
 
-// 10. 🔥 تحديث دالة تغيير الفترة
+// 12. 🔥 تحديث دالة تغيير الفترة
 function updateChartPeriod(period) {
     document.querySelectorAll('.time-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -437,7 +490,7 @@ function updateChartPeriod(period) {
     refreshChartWithRealData();
 }
 
-// 11. 🔥 دالة تحديث معلومات التزامن
+// 13. 🔥 دالة تحديث معلومات التزامن
 function updateSyncInfo() {
     const currentTypeInfo = document.getElementById('currentTypeInfo');
     const syncText = document.getElementById('syncText');
@@ -470,7 +523,7 @@ function updateSyncInfo() {
     currentTypeInfo.innerHTML = currentTexts.type;
 }
 
-// 12. 🔥 دالة إعداد أحداث المخطط
+// 14. 🔥 دالة إعداد أحداث المخطط
 function setupChartEvents() {
     // إعداد أحداث أزرار الفترة الزمنية
     const timeButtons = document.querySelectorAll('.time-btn');
@@ -506,32 +559,6 @@ function setupChartEvents() {
     console.log('✅ أحداث المخطط تم إعدادها');
 }
 
-// 13. 🔥 دالة مراقبة تغييرات أنواع الذهب
-function setupTypeChangeObserver() {
-    const typePills = document.querySelectorAll('.type-pill');
-    
-    if (typePills.length === 0) {
-        console.log('❌ أزرار أنواع الذهب غير موجودة، جرب مرة أخرى...');
-        setTimeout(setupTypeChangeObserver, 1000);
-        return;
-    }
-    
-    typePills.forEach(pill => {
-        pill.removeEventListener('click', handleTypeChange);
-        pill.addEventListener('click', handleTypeChange);
-    });
-    
-    console.log('✅ مراقبة تغييرات الأنواع تم إعدادها');
-}
-
-// 14. 🔥 دالة معالجة تغيير النوع
-function handleTypeChange() {
-    setTimeout(() => {
-        console.log('🔄 تغيير نوع الذهب، تحديث المخطط...');
-        refreshChartWithRealData();
-    }, 300);
-}
-
 // 15. 🔥 دالة كشف اللغة
 function detectChartLanguage() {
     const htmlLang = document.documentElement.getAttribute('lang');
@@ -552,13 +579,25 @@ function detectChartLanguage() {
     return 'ar';
 }
 
-// 16. 🔥 دالة الحصول على النوع النشط
+// 16. 🔥 دالة الحصول على النوع النشط (محسنة)
 function getActiveGoldType() {
-    const activePill = document.querySelector('.type-pill.active');
-    if (!activePill) return getDefaultType();
+    // ابحث عن الزر النشط في عدة أماكن محتملة
+    const activePill = document.querySelector('.type-pill.active, .gold-type.active, .type-item.active, [id*="gram"].active');
+    
+    if (!activePill) {
+        console.log('⚠️ لم يتم العثور على زر نشط، استخدام النوع الافتراضي');
+        return getDefaultType();
+    }
     
     const typeId = activePill.id;
-    const typeLabel = activePill.querySelector('.type-label')?.textContent || typeId;
+    let typeLabel = activePill.textContent.trim();
+    
+    // تنظيف التسمية من الأرقام والرموز
+    typeLabel = typeLabel.replace(/[0-9]/g, '').replace(/TRY/g, '').replace(/-/g, '').trim();
+    
+    if (!typeLabel) {
+        typeLabel = getLabelFromId(typeId);
+    }
     
     return {
         id: typeId,
@@ -568,7 +607,23 @@ function getActiveGoldType() {
     };
 }
 
-// 17. 🔥 الدوال المساعدة
+// 17. 🔥 دالة مساعدة للحصول على التسمية من الـ ID
+function getLabelFromId(typeId) {
+    const labels = {
+        'gram24': 'عيار 24',
+        'gram22': 'عيار 22', 
+        'gram21': 'عيار 21',
+        'gram18': 'عيار 18',
+        'gram14': 'عيار 14',
+        'lira': 'ليرة',
+        'half': 'نص ليرة',
+        'quarter': 'ربع ليرة',
+        'silver': 'فضة'
+    };
+    return labels[typeId] || 'عيار 24';
+}
+
+// 18. 🔥 الدوال المساعدة
 function getFactorForType(typeId) {
     const factors = {
         'gram24': 1.00, 'gram22': 0.916, 'gram21': 0.875, 'gram18': 0.750,
@@ -595,7 +650,7 @@ function getDefaultType() {
     };
 }
 
-// 18. 🔥 دالة الحصول على السعر الحالي من الواجهة
+// 19. 🔥 دالة الحصول على السعر الحالي من الواجهة
 function getCurrentGoldPrice() {
     const buyPriceElement = document.getElementById('buyPrice');
     if (buyPriceElement && buyPriceElement.textContent !== '-') {
@@ -613,7 +668,7 @@ function getCurrentGoldPrice() {
     return 5790.80;
 }
 
-// 19. 🔥 دالة تحديث عنوان المخطط
+// 20. 🔥 دالة تحديث عنوان المخطط
 function updateChartTitle() {
     const titleElement = document.querySelector('.chart-section h3');
     if (titleElement) {
@@ -630,10 +685,11 @@ function updateChartTitle() {
     }
 }
 
-// 20. 🔥 التهيئة الرئيسية
+// 21. 🔥 التهيئة الرئيسية (محسنة)
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 بدء تحميل المخطط ببيانات حقيقية...');
     
+    // تأخير التهيئة لضمان تحميل جميع العناصر
     setTimeout(async () => {
         // إنشاء واجهة المخطط أولاً
         createChartInterface();
@@ -644,9 +700,11 @@ document.addEventListener('DOMContentLoaded', function() {
         setupTypeChangeObserver();
         
         console.log('🎉 المخطط جاهز ببيانات حقيقية!');
-    }, 1000);
+    }, 2000); // زيادة الوقت لضمان تحميل app.js أولاً
+
 });
 
-// 21. 🔥 جعل الدوال متاحة globally للاستدعاء من ملفات أخرى
+// 22. 🔥 جعل الدوال متاحة globally للاستدعاء من ملفات أخرى
 window.refreshGoldChart = refreshChartWithRealData;
 window.updateGoldChartPeriod = updateChartPeriod;
+window.setupChartTypeObserver = setupTypeChangeObserver;
