@@ -1188,6 +1188,63 @@ function cleanup() {
   }
 }
 
+// 🔥 تحميل الإعدادات
+function loadUserPreferences() {
+  try {
+    const saved = localStorage.getItem('siteLanguage');
+    console.log('🔍 Saved language:', saved);
+    if (saved) {
+      changeLanguage(saved);
+    }
+    
+    const prefs = userPreferences.get();
+    
+    // 🔥 الإصلاح: تحقق من القيم قبل التعيين واستخدم قيم افتراضية
+    if (prefs.selectedType && typeMap.has(prefs.selectedType)) {
+      selectedType = typeMap.get(prefs.selectedType);
+    } else {
+      selectedType = typeMap.get("gram24") || types[0];
+      console.log('🔄 استخدام النوع الافتراضي: gram24');
+    }
+    
+    if (prefs.selectedCurrency && currencyMap.has(prefs.selectedCurrency)) {
+      selectedCurrency = currencyMap.get(prefs.selectedCurrency);
+    } else {
+      selectedCurrency = currencyMap.get("TRY") || currencyList[0];
+      console.log('🔄 استخدام العملة الافتراضية: TRY');
+    }
+    
+    console.log('✅ الإعدادات المحملة:', { 
+      type: selectedType.id, 
+      currency: selectedCurrency.code 
+    });
+    
+  } catch (e) {
+    console.warn('فشل في تحميل الإعدادات:', e);
+    // 🔥 قيم افتراضية في حالة الخطأ
+    selectedType = typeMap.get("gram24") || types[0];
+    selectedCurrency = currencyMap.get("TRY") || currencyList[0];
+  }
+}
+
+// 🔥 تنظيف الموارد
+function cleanup() {
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+  
+  if (newsTimer) {
+    clearInterval(newsTimer);
+    newsTimer = null;
+  }
+  
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
+}
+
 // 🔥 إعداد event listeners
 function setupEventListeners() {
   $('#refreshBtn')?.addEventListener('click', () => fetchData()); 
@@ -1210,6 +1267,10 @@ function setupEventListeners() {
 
 // 🔥 التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded', () => { 
+  // 🔥 الإصلاح: تهيئة المتغيرات أولاً
+  if (!selectedType) selectedType = typeMap.get("gram24") || types[0];
+  if (!selectedCurrency) selectedCurrency = currencyMap.get("TRY") || currencyList[0];
+  
   loadUserPreferences();
   buildUI(); 
   
