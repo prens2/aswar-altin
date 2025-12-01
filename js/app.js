@@ -1,4 +1,4 @@
-const API_BASE = 'https://royal-limit-d5a2.mohamad1999mz.workers.dev/';
+
 
 // 1️⃣ أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
 const types = [
@@ -800,34 +800,20 @@ async function fetchData() {
     try {
         setStatus('🔄 جاري التحديث...');
         
-        const response = await fetch(API_BASE);
-        if (!response.ok) throw new Error('فشل جلب البيانات');
-        
-        const data = await response.json();
-        console.log('✅ البيانات المستلمة:', data);
-        
-        // 🔥 تحقق من الهيكل الجديد للبيانات
-        if (data.success && data.data) {
-            latestData = data;
-            setStatus('✅ تم التحديث - بيانات حية');
-            updateLast(data.timestamp);
-        } else {
-            throw new Error('هيكل البيانات غير متوقع');
-        }
-        
-        renderPricesFromData();
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب البيانات:', error);
-        setStatus('❌ استخدام البيانات المحلية');
-        
+        // استخدم البيانات المحلية مباشرة
         latestData = mockApiData;
         updateLast(mockApiData["تم التحديث"]);
         renderPricesFromData();
         
-        showNotification('استخدام البيانات المحلية المحدثة', 'info');
+        setStatus('✅ تم التحديث - بيانات محلية');
+        showNotification('✅ تم تحميل البيانات المحلية بنجاح', 'success');
+        
+    } catch (error) {
+        console.error('❌ خطأ في تحديث البيانات:', error);
+        setStatus('❌ خطأ في تحميل البيانات');
     }
 }
+
 
 // 🔥 دالة الحصول على سعر الجرام الأساسي
 function getGramBase() {
