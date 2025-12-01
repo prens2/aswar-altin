@@ -993,13 +993,13 @@ function renderPricesFromData(){
   }
 }
 
-// 🔥 دالة تغيير نوع الذهب - تأكد من وجودها
 function selectType(typeId) {
   const type = typeMap.get(typeId);
-  if (!type) {
-    console.log('❌ النوع غير موجود:', typeId);
-    return;
-  }
+  if (!type) return;
+  selectedType = type;
+  setActiveUI();
+  renderPricesFromData(); // 🔥 هذا يحسب الأسعار الجديدة
+}
   selectedType = type;
   setActiveUI();
   renderPricesFromData();
