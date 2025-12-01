@@ -941,56 +941,66 @@ function renderPricesFromData(){
     }
   }
   
-  // 🔥 أخيراً: استخدام البيانات المحلية إذا فشل كل شيء
-  console.log('🔄 استخدام البيانات المحلية...');
-  
-  const gramTry = getGramBase() || 5790.8;
-  let converted = gramTry; 
-  const cur = selectedCurrency.code; 
-  
-  if(latestData && latestData.fx && typeof latestData.fx === 'object'){ 
+// 🔥 استخدام البيانات المحلية إذا فشل كل شيء
+console.log('🔄 استخدام البيانات المحلية...');
+
+const gramTry = getGramBase() || 5790.8;
+const cur = selectedCurrency.code;
+
+// تحويل العملة إذا متاح
+let fxRate = 1;
+if(latestData && latestData.fx && typeof latestData.fx === 'object'){ 
     const fxMap = new Map(Object.entries(latestData.fx));
-    
     if(fxMap.has(cur)) {
-      converted = parseFloat(fxMap.get(cur));
+        fxRate = parseFloat(fxMap.get(cur));
     }
-  }
-  
-  const grams = selectedType.grams || 1; 
-  let final = converted * grams; 
-  
-  // 🔥 حسابات العيارات بناء على سعر عيار 24 الحقيقي
-  let purityFactor = 1;
-  if (selectedType.id === "gram24") purityFactor = 1.00;
-  else if (selectedType.id === "gram22") purityFactor = 0.916;
-  else if (selectedType.id === "gram21") purityFactor = 0.875;
-  else if (selectedType.id === "gram18") purityFactor = 0.750;
-  else if (selectedType.id === "gram14") purityFactor = 0.583;
-  else if (selectedType.id === "lira") purityFactor = 7.32;
-  else if (selectedType.id === "half") purityFactor = 3.66;
-  else if (selectedType.id === "quarter") purityFactor = 1.83;
-  else if (selectedType.id === "ounce") purityFactor = 31.1035;
-  else if (selectedType.id === "silver") purityFactor = 0.012;
-  
-  final = final * purityFactor;
-  final = parseFloat(final) || 0; 
-  
-  // 🔥 فرق سعر البنك بناء على الأسعار الحقيقية (1.2%)
-  const spread = (5790.8 - 5721.45) / 5790.8;
-  const buy = +(final * (1 + spread/2)).toFixed(2);
-  const sell = +(final * (1 - spread/2)).toFixed(2);
-  
-  console.log('💰 الأسعار الاحتياطية:', { final, buy, sell });
-  
-  // تحديث الأسعار النهائية
-  animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), 0, 'buy');
-  animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), 0, 'sell');
-  
-  const qty = parseFloat($("#qty")?.value) || 1; 
-  const resultValue = sell * qty;
-  if ($("#result")) {
+}
+
+// دالة حساب السعر النهائي لأي نوع ذهب
+function calculatePrice(selectedType) {
+    const base24 = parseFloat(latestData?.price_gram_try || gramTry);
+    let finalPrice = base24;
+
+    switch(selectedType.id) {
+        case "gram24": finalPrice *= 1; break;
+        case "gram22": finalPrice *= 0.916; break;
+        case "gram21": finalPrice *= 0.875; break;
+        case "gram18": finalPrice *= 0.75; break;
+        case "gram14": finalPrice *= 0.583; break;
+        case "lira": finalPrice *= 7.32; break;
+        case "half": finalPrice *= 3.66; break;
+        case "quarter": finalPrice *= 1.83; break;
+        case "ounce": finalPrice *= 31.1035; break;
+        case "silver": finalPrice *= 0.012; break;
+        default: finalPrice *= 1; break;
+    }
+
+    // تحويل العملة
+    finalPrice *= fxRate;
+
+    // فرق البنك (spread)
+    const spread = (5790.8 - 5721.45) / 5790.8; // فرق تقريبي
+    const buy = +(finalPrice * (1 + spread/2)).toFixed(2);
+    const sell = +(finalPrice * (1 - spread/2)).toFixed(2);
+
+    return { buy, sell };
+}
+
+// استدعاء الدالة للحصول على الأسعار
+const { buy, sell } = calculatePrice(selectedType);
+
+// طباعة الأسعار للتأكد
+console.log('💰 الأسعار الاحتياطية:', { buy, sell });
+
+// تحديث الأسعار النهائية في واجهة المستخدم
+animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), 0, 'buy');
+animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), 0, 'sell');
+
+// حساب النتيجة حسب الكمية
+const qty = parseFloat($("#qty")?.value) || 1; 
+const resultValue = sell * qty;
+if ($("#result")) {
     $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
-  }
 }
 
 function selectType(typeId) {
