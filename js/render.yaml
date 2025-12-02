@@ -1,0 +1,33 @@
+# render.yaml
+services:
+  # الخدمة الرئيسية (API + Frontend)
+  - type: web
+    name: aswar-altin
+    env: node
+    region: frankfurt  # أوروبا (أقرب للشرق الأوسط)
+    plan: free
+    buildCommand: |
+      npm install
+      echo "✅ Build completed"
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: API_KEY
+        sync: false  # ستضيفه يدوياً في Dashboard
+    healthCheckPath: /api/health
+    healthCheckTimeout: 30
+    autoDeploy: true
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /api/*
+        name: Access-Control-Allow-Origin
+        value: "*"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
