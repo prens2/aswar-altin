@@ -618,35 +618,40 @@ function renderPricesFromData() {
 // 🔥 دوال جلب البيانات
 // ============================================================================
 
+// في app.js - تعديل دالة fetchData
 async function fetchData() {
-    console.group('📥 جلب البيانات من السيرفر');
-    
     try {
         setStatus('🔄 جاري تحديث البيانات...');
         
-        // التحقق من اتصال الإنترنت
-        if (!navigator.onLine) {
-            throw new Error('NO_INTERNET');
+        // استخدام API على Render
+        const apiUrl = 'https://aswar-altin-api.onrender.com/api/prices';
+        console.log('📡 الاتصال بـ:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // 🔥 استخدام موقعك: https://aswar-altin.vercel.app
-        const apiUrl = 'https://aswar-altin.vercel.app/api/prices';
-        console.log('📡 رابط موقعك:', apiUrl);
+        const data = await response.json();
+        latestData = data;
         
-        // إعداد الطلب مع timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-        }, 10000);
+        console.log('✅ البيانات المستلمة:', data);
         
-        // إرسال الطلب
-        const response = await fetch(apiUrl, {
-            signal: controller.signal,
-            headers: {
-                'Accept': 'application/json',
-                'Cache-Control': 'no-cache'
-            }
-        });
+        renderPricesFromData();
+        updateLast(data.timestamp || new Date().toISOString());
+        setStatus('✅ تم التحديث الآن');
+        
+        showNotification('✅ تم تحديث الأسعار', 'success');
+        
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        latestData = mockApiData;
+        renderPricesFromData();
+        setStatus('❌ استخدام بيانات محلية');
+        showNotification('❌ فشل الاتصال. استخدام بيانات محلية', 'error');
+    }
+}
         
         clearTimeout(timeoutId);
         
