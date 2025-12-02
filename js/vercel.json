@@ -1,15 +1,8 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/prices",
-      "dest": "/server.js"
+      "source": "/api/gold-prices",
+      "destination": 'https://aswar-altin.onrender.com/api/prices';
     }
   ]
 }
