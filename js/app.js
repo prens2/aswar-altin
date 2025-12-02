@@ -1228,7 +1228,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setupEventListeners();
         fetchGoldNews();
-        autoTimer = setInterval(updateData, 30000);
         newsTimer = setInterval(fetchGoldNews, 300000);
 
     }, 100);
