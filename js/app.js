@@ -421,34 +421,31 @@ function protectChartFromDisappearing() {
   });
 }
 
-// 🔥 دالة تغيير اللغة المحسنة
+// 🔥 دالة تغيير اللغة المحسنة - الإصدار النهائي
 function changeLanguage(lang) {
     // 🔥 تحقق من أن lang معرف وصحيح
     if (!lang || !['ar', 'en', 'tr'].includes(lang)) {
-        console.error('❌ lang is undefined or invalid:', lang);
+        console.error('❌ اللغة غير معرفة أو غير صالحة:', lang);
         lang = 'ar'; // استخدم العربية كافتراضي
     }
     
-    console.log('🔄 Changing language to:', lang);
     currentLanguage = lang;
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
     
-    setTimeout(() => {
+    try {
+        // تحديث كل النصوص
         updateAllTexts();
         updateGoldTypeLabels();
         updateCurrencyLabels();
-        updateNewsDisplay();
+        protectChartFromDisappearing();
         
-        // 🔥 توحيد تنسيق الأرقام بعد تغيير اللغة
-        unifyNumberFormatting();
+        // حفظ التفضيل
+        localStorage.setItem('language', lang);
         
-        // 🔥 استدعاء المخطط من app.js فقط
-        if (typeof handleLanguageChange === 'function') {
-            handleLanguageChange();
-        }
-        
-    }, 100);
+        console.log('✅ اللغة تغيرت إلى:', lang);
+    } catch (error) {
+        console.error('❌ خطأ في تغيير اللغة:', error);
+    }
+}
     
     localStorage.setItem('siteLanguage', lang);
     showNotification(
