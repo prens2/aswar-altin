@@ -1198,28 +1198,29 @@ function setupEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // تهيئة المتغيرات
-  if (!selectedType) selectedType = typeMap.get("gram24") || types[0];
-  if (!selectedCurrency) selectedCurrency = currencyMap.get("TRY") || currencyList[0];
+    if (!selectedType) selectedType = typeMap.get("gram24") || types[0];
+    if (!selectedCurrency) selectedCurrency = currencyMap.get("TRY") || currencyList[0];
 
-  loadUserPreferences();
-  buildUI();
+    loadUserPreferences();
+    buildUI();
 
-  setTimeout(() => {
-    setActiveUI();
-    updateAllTexts();
-    updateGoldTypeLabels();
-    updateCurrencyLabels();
+    setTimeout(() => {
+        setActiveUI();
+        updateAllTexts();
+        updateTypeLabels(); // تأكد من الاسم الصحيح
+        updateCurrencyLabels();
 
-    setupEventListeners();
-    updateData();
-    fetchGoldNews();
-    cleanup();
+        setupEventListeners();
+        updateData();
+        fetchGoldNews();
+        
+        // إزالة cleanup إذا لم تكن معرفة
+        // cleanup();
 
-    autoTimer = setInterval(updateData, 30000);
-    newsTimer = setInterval(fetchGoldNews, 300000);
+        autoTimer = setInterval(updateData, 30000); // updateData لا updatedData
+        newsTimer = setInterval(fetchGoldNews, 300000);
 
-  }, 100);
+    }, 100);
 });
 
 // 🔥 إدارة دورة حياة الصفحة
