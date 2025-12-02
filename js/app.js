@@ -1213,11 +1213,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEventListeners();
         updateData();
         fetchGoldNews();
-        
-        // إزالة cleanup إذا لم تكن معرفة
-        // cleanup();
 
-        autoTimer = setInterval(updateData, 30000); // updateData لا updatedData
+        // cleanup(); // إزالة التعليق إذا كانت الدالة معرفة
+
+        autoTimer = setInterval(updateData, 30000);
         newsTimer = setInterval(fetchGoldNews, 300000);
 
     }, 100);
