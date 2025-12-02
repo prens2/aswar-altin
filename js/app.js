@@ -1207,15 +1207,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         setActiveUI();
         updateAllTexts();
-        updateTypeLabels();
+        updateGoldTypeLabels(); // ✅ تغيير هنا
         updateCurrencyLabels();
 
         setupEventListeners();
         updateData();
         fetchGoldNews();
-
-        // cleanup(); // إزالة التعليق إذا كانت الدالة معرفة
-
         autoTimer = setInterval(updateData, 30000);
         newsTimer = setInterval(fetchGoldNews, 300000);
 
