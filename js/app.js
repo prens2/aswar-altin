@@ -1200,37 +1200,30 @@ function setupEventListeners() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => { 
-  // 🔥 تهيئة المتغيرات
+document.addEventListener('DOMContentLoaded', () => {
+  // تهيئة المتغيرات
   if (!selectedType) selectedType = typeMap.get("gram24") || types[0];
   if (!selectedCurrency) selectedCurrency = currencyMap.get("TRY") || currencyList[0];
-  
+
   loadUserPreferences();
-  buildUI(); 
-  
+  buildUI();
+
   setTimeout(() => {
-    setActiveUI(); 
+    setActiveUI();
     updateAllTexts();
     updateGoldTypeLabels();
     updateCurrencyLabels();
-    
+
     setupEventListeners();
-    
-    // 🔥 جلب البيانات الأول
     updateData();
     fetchGoldNews();
-    
     cleanup();
-    
-    // 🔥 التحديث كل 30 ثانية
-    autoTimer = setInterval(updateData, 30 * 1000);
 
-    // 🔥 تحديث الأخبار كل 5 دقائق
+    autoTimer = setInterval(updateData, 30000);
     newsTimer = setInterval(fetchGoldNews, 300000);
-    
+
   }, 100);
 });
-
 
 // 🔥 إدارة دورة حياة الصفحة
 window.addEventListener('beforeunload', cleanup);
