@@ -1,14 +1,18 @@
-// 1️⃣ أنواع الذهب بجميع اللغات - مع إضافة عيارات 21 و22
+// ============================================================================
+// 🔥 GOLD PRICES APP - COMPLETE VERSION
+// ============================================================================
+
+// 1️⃣ أنواع الذهب بجميع اللغات
 const types = [
+    { id: "gram24", labels: { ar: "جرام ذهب 24", en: "24K Gold", tr: "24 Ayar Altın" }, img: "images/gold/gold24.png", grams: 1, karat: "24K" },
+    { id: "gram22", labels: { ar: "جرام ذهب 22", en: "22K Gold", tr: "22 Ayar Altın" }, img: "images/gold/gold22.png", grams: 1, karat: "22K" },
+    { id: "gram21", labels: { ar: "جرام ذهب 21", en: "21K Gold", tr: "21 Ayar Altın" }, img: "images/gold/gold21.png", grams: 1, karat: "21K" },
+    { id: "gram18", labels: { ar: "جرام ذهب 18", en: "18K Gold", tr: "18 Ayar Altın" }, img: "images/gold/gold18.png", grams: 1, karat: "18K" },
+    { id: "gram14", labels: { ar: "جرام ذهب 14", en: "14K Gold", tr: "14 Ayar Altın" }, img: "images/gold/gold14.png", grams: 1, karat: "14K" },
     { id: "lira", labels: { ar: "ليرة ذهب", en: "Gold Lira", tr: "Altın Lira" }, img: "images/gold/lira.png", grams: 7.32 },
     { id: "half", labels: { ar: "نصف ليرة", en: "Half Lira", tr: "Yarım Lira" }, img: "images/gold/half.png", grams: 3.66 },
     { id: "quarter", labels: { ar: "ربع ليرة", en: "Quarter Lira", tr: "Çeyrek Lira" }, img: "images/gold/quarter.png", grams: 1.83 },
     { id: "ounce", labels: { ar: "أونصة ذهب", en: "Gold Ounce", tr: "Altın Ons" }, img: "images/gold/gold24.png", grams: 31.1035 },
-    { id: "gram24", labels: { ar: "جرام ذهب 24", en: "24g Gold", tr: "24g Altın" }, img: "images/gold/gold24.png", grams: 1 },
-    { id: "gram22", labels: { ar: "جرام ذهب 22", en: "22g Gold", tr: "22g Altın" }, img: "images/gold/gold22.png", grams: 1 },
-    { id: "gram21", labels: { ar: "جرام ذهب 21", en: "21g Gold", tr: "21g Altın" }, img: "images/gold/gold21.png", grams: 1 },
-    { id: "gram18", labels: { ar: "جرام ذهب 18", en: "18g Gold", tr: "18g Altın" }, img: "images/gold/gold18.png", grams: 1 },
-    { id: "gram14", labels: { ar: "جرام ذهب 14", en: "14g Gold", tr: "14g Altın" }, img: "images/gold/gold14.png", grams: 1 },
     { id: "silver", labels: { ar: "فضة", en: "Silver", tr: "Gümüş" }, img: "images/gold/silver.png", grams: 1 }
 ];
 
@@ -27,9 +31,16 @@ const currencyList = [
     {code:"DZD", labels: {ar: "الدينار الجزائري", en: "Algerian Dinar", tr: "Cezayir Dinarı"}, flag:"dz"}
 ];
 
-// 3️⃣ البيانات الاحتياطية - الأسعار المحدثة
+// 3️⃣ الأعلام في الزاوية للترجمة
+const cornerFlags = [
+    {code: "TRY", flag: "tr", label: "تركيا", lang: "tr"},
+    {code: "USD", flag: "us", label: "أمريكا", lang: "en"},
+    {code: "SYP", flag: "sy", label: "سوريا", lang: "ar"}
+];
+
+// 4️⃣ البيانات الاحتياطية
 const mockApiData = {
-    "تم التحديث": "2025-11-23T22:04:30.958Z",
+    "تم التحديث": new Date().toISOString(),
     "price_gram_try": "5790.8",
     "price_gram_usd": "136.8983",
     "price_ounce_usd": "4258.02",
@@ -40,27 +51,20 @@ const mockApiData = {
         "TRY": "42.30",
         "SAR": "3.75",
         "AED": "3.67",
-        "KWD": "0.31"
+        "KWD": "0.31",
+        "BHD": "0.38",
+        "IQD": "1310.00",
+        "EGP": "47.89",
+        "SYP": "13000.00",
+        "DZD": "134.50"
     },
     "gold_coins": {
         "gram24": {
-            "buy": "5790.8",
-            "sell": "5721.45",
-            "weight": "1.00",
-            "name_ar": "عيار 24",
-            "name_en": "24K Gold",
-            "name_tr": "24 Ayar Altın"
+            "buy": { "TRY": "5790.8", "USD": "136.90", "EUR": "126.05", "SAR": "513.55", "AED": "502.45" },
+            "sell": { "TRY": "5721.45", "USD": "135.35", "EUR": "124.61", "SAR": "507.45", "AED": "496.52" }
         }
-        // ... باقي البيانات
     }
 };
-
-// 4️⃣ الأعلام في الزاوية للترجمة
-const cornerFlags = [
-    {code: "TRY", flag: "tr", label: "تركيا", lang: "tr"},
-    {code: "USD", flag: "us", label: "أمريكا", lang: "en"},
-    {code: "SYP", flag: "sy", label: "سوريا", lang: "ar"}
-];
 
 // 5️⃣ الـ Maps للبحث السريع
 const typeMap = new Map(types.map(t => [t.id, t]));
@@ -75,9 +79,42 @@ let latestData = null;
 let autoTimer = null;
 let newsTimer = null;
 let debounceTimer = null;
-const API_BASE = window.location.origin; // التعديل لجلب البيانات من server.js
 
-// 🔥 دالة تنسيق الأرقام - تنسيق موحد لجميع اللغات
+// ============================================================================
+// 🔥 HELPER FUNCTIONS
+// ============================================================================
+
+function $(selector) {
+    return document.querySelector(selector);
+}
+
+function setStatus(message) {
+    const element = $("#apiStatus");
+    if (element) {
+        element.textContent = message;
+        if (message.includes('✅') || message.includes('❌')) {
+            element.style.animation = 'fadeInOut 2s ease-in-out';
+        }
+    }
+}
+
+function updateLast(timestamp) {
+    const element = $("#last-update");
+    if (!element) return;
+    
+    try {
+        if (timestamp) {
+            const date = new Date(timestamp);
+            element.textContent = date.toLocaleString('ar-EG');
+        } else {
+            element.textContent = new Date().toLocaleString('ar-EG');
+        }
+    } catch (error) {
+        element.textContent = new Date().toLocaleString('ar-EG');
+    }
+}
+
+// 🔥 دالة تنسيق الأرقام
 function formatNumber(num, currencyCode) {
     if (isNaN(num) || num === null || num === undefined) return '0.00';
     const number = parseFloat(num);
@@ -105,7 +142,6 @@ function animatePriceUpdate(selector, newValue, changePercent, type) {
     const element = $(selector);
     if (!element) return;
 
-    const oldValue = element.textContent;
     let arrow = '';
     let colorClass = '';
 
@@ -120,63 +156,48 @@ function animatePriceUpdate(selector, newValue, changePercent, type) {
         colorClass = 'price-stable';
     }
 
-    element.style.opacity = '0.5';
-    element.style.transform = 'translateY(-10px)';
-    
-    setTimeout(() => {
-        element.textContent = `${newValue} ${arrow}`;
-        element.className = colorClass;
-        element.style.opacity = '1';
-        element.style.transform = 'translateY(0)';
-    }, 150);
+    element.textContent = `${newValue} ${arrow}`;
+    element.className = colorClass;
 }
 
-// 🔥 الدوال الأساسية المحسنة
-function $(s) { return document.querySelector(s) }
-
-function setStatus(m) {
-    const e = $("#apiStatus");
-    if(e) {
-        e.textContent = m;
-        if(m.includes('✅') || m.includes('❌')) {
-            e.style.animation = 'fadeInOut 2s ease-in-out';
-        }
-    }
-}
-
-function updateLast(ts) {
-    const e = $("#last-update");
-    if(!e) return;
-    if(ts) {
-        try {
-            const d = new Date(ts);
-            e.textContent = d.toLocaleString('ar-EG');
-            return;
-        } catch(e) {}
-    }
-    e.textContent = new Date().toLocaleString('ar-EG');
-}
-
-// 🔥 نظام الإشعارات المحسن
+// 🔥 نظام الإشعارات
 function showNotification(message, type = 'info') {
+    console.log(`📢 ${type.toUpperCase()}: ${message}`);
+    
+    // إنشاء عنصر الإشعار
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.innerHTML = `
-        <span class="notification-icon">${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</span>
+        <span class="notification-icon">
+            ${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}
+        </span>
         <span class="notification-text">${message}</span>
     `;
     
+    // إضافة الأنماط
     notification.style.cssText = `
-        position: fixed; top: 20px; right: 20px;
-        background: ${type === 'error' ? 'rgba(220, 53, 69, 0.95)' : type === 'success' ? 'rgba(40, 167, 69, 0.95)' : 'rgba(23, 162, 184, 0.95)'};
-        color: white; padding: 12px 20px; border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;
-        animation: slideIn 0.3s ease; backdrop-filter: blur(10px);
-        border: 1px solid ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#17a2b8'};
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'error' ? 'rgba(220, 53, 69, 0.95)' : 
+                     type === 'success' ? 'rgba(40, 167, 69, 0.95)' : 
+                     'rgba(23, 162, 184, 0.95)'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid ${type === 'error' ? '#dc3545' : 
+                         type === 'success' ? '#28a745' : 
+                         '#17a2b8'};
     `;
     
+    // إضافة الإشعار إلى الصفحة
     document.body.appendChild(notification);
     
+    // إزالة الإشعار بعد 4 ثواني
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => {
@@ -187,7 +208,10 @@ function showNotification(message, type = 'info') {
     }, 4000);
 }
 
-// 🔥 تحديث جميع النصوص
+// ============================================================================
+// 🔥 LANGUAGE & TRANSLATION FUNCTIONS
+// ============================================================================
+
 function updateAllTexts() {
     const texts = {
         'brand': {
@@ -217,6 +241,7 @@ function updateAllTexts() {
         }
     };
 
+    // تحديث النصوص حسب ID
     for (const [id, translation] of Object.entries(texts)) {
         const element = $(`#${id}`);
         if (element) {
@@ -224,6 +249,7 @@ function updateAllTexts() {
         }
     }
 
+    // تحديث تسميات الشراء والبيع
     document.querySelectorAll('.card-label').forEach((el, index) => {
         const labels = {
             ar: ['سعر الشراء', 'سعر البيع'],
@@ -234,45 +260,8 @@ function updateAllTexts() {
             el.textContent = labels[currentLanguage][index];
         }
     });
-
-    updateChartTitles();
 }
 
-// 🔥 دالة تحديث عناوين المخطط
-function updateChartTitles() {
-    const mainChartTitle = document.querySelector('.chart-section h3, .chart-title');
-    if (mainChartTitle) {
-        const titles = {
-            ar: 'مخطط أسعار الذهب',
-            en: 'Gold Price Chart',
-            tr: 'Altın Fiyat Grafiği'
-        };
-        mainChartTitle.textContent = titles[currentLanguage] || titles.ar;
-    }
-
-    const syncText = document.querySelector('.sync-text');
-    if (syncText) {
-        const texts = {
-            ar: 'المخطط متزامن مع النوع المحدد',
-            en: 'Chart synced with selected type',
-            tr: 'Grafik seçilen türle senkronize'
-        };
-        syncText.textContent = texts[currentLanguage] || texts.ar;
-    }
-
-    document.querySelectorAll('.time-btn').forEach((btn, index) => {
-        const periods = {
-            ar: ['أسبوع', 'شهر', '3 أشهر'],
-            en: ['Week', 'Month', '3 Months'],
-            tr: ['Hafta', 'Ay', '3 Ay']
-        };
-        if (periods[currentLanguage] && periods[currentLanguage][index]) {
-            btn.textContent = periods[currentLanguage][index];
-        }
-    });
-}
-
-// 🔥 تحديث تسميات الذهب
 function updateGoldTypeLabels() {
     types.forEach(type => {
         const element = document.getElementById(type.id);
@@ -295,20 +284,17 @@ function updateGoldTypeLabels() {
     }
 }
 
-// 🔥 تحديث تسميات العملات
 function updateCurrencyLabels() {
     currencyList.forEach(currency => {
-        const element = $(`.flag-card[data-code="${currency.code}"] .flag-label`);
+        const element = $(`.currency-tab[data-currency="${currency.code}"] .currency-label`);
         if (element) {
             element.textContent = currency.labels[currentLanguage] || currency.labels.ar;
         }
     });
 }
 
-// 🔥 دالة تغيير اللغة
 function changeLanguage(lang) {
     if (!lang || !['ar', 'en', 'tr'].includes(lang)) {
-        console.warn('⚠️ لغة غير معترف بها، استخدام العربية كافتراضي:', lang);
         lang = 'ar';
     }
 
@@ -344,7 +330,10 @@ function changeLanguage(lang) {
     }
 }
 
-// 🔥 بناء الأعلام في الزاوية
+// ============================================================================
+// 🔥 UI BUILDING FUNCTIONS
+// ============================================================================
+
 function buildCornerFlags() {
     const cornerFlagsContainer = $("#cornerFlags");
     if (!cornerFlagsContainer) return;
@@ -362,21 +351,126 @@ function buildCornerFlags() {
     });
 }
 
-// 🔥 دالة تغيير العملة
+function buildUI() {
+    // بناء الأعلام في الزاوية
+    buildCornerFlags();
+    
+    // بناء أنواع الذهب
+    const typesContainer = $("#typesScroll");
+    if (typesContainer) {
+        typesContainer.innerHTML = '';
+        types.forEach(type => {
+            const div = document.createElement('div');
+            div.className = 'type-pill';
+            div.id = type.id;
+            div.innerHTML = `
+                <div class="type-pill-content">
+                    ${type.karat ? `<div class="karat-badge">${type.karat}</div>` : ''}
+                    <div class="type-circle">
+                        <img src="${type.img}" alt="${type.labels.ar}" />
+                    </div>
+                    <div class="type-label">${type.labels[currentLanguage] || type.labels.ar}</div>
+                </div>
+            `;
+            div.addEventListener('click', () => selectType(type.id));
+            typesContainer.appendChild(div);
+        });
+    }
+    
+    // بناء أزرار العملات
+    const currencyContainer = $(".currency-tabs");
+    if (currencyContainer) {
+        currencyContainer.innerHTML = '';
+        currencyList.forEach(currency => {
+            const button = document.createElement('button');
+            button.className = 'currency-tab';
+            button.dataset.currency = currency.code;
+            button.innerHTML = `
+                <img src="https://flagcdn.com/w20/${currency.flag}.png" alt="${currency.code}" />
+                <span class="currency-label">${currency.labels[currentLanguage] || currency.labels.ar}</span>
+            `;
+            button.addEventListener('click', () => selectCurrency(currency.code));
+            currencyContainer.appendChild(button);
+        });
+    }
+    
+    // بناء القائمة المنسدلة
+    const select = $("#unitSelect");
+    if (select) {
+        select.innerHTML = '';
+        types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.id;
+            option.textContent = type.labels[currentLanguage] || type.labels.ar;
+            select.appendChild(option);
+        });
+        
+        if (selectedType) {
+            select.value = selectedType.id;
+        }
+    }
+}
+
+function setActiveUI() {
+    // تفعيل نوع الذهب المختار
+    document.querySelectorAll('.type-pill').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    if (selectedType && selectedType.id) {
+        const activeType = document.getElementById(selectedType.id);
+        if (activeType) activeType.classList.add('active');
+    }
+    
+    // تفعيل العملة المختارة
+    document.querySelectorAll('.currency-tab').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    if (selectedCurrency && selectedCurrency.code) {
+        const activeCurrency = $(`.currency-tab[data-currency="${selectedCurrency.code}"]`);
+        if (activeCurrency) activeCurrency.classList.add('active');
+    }
+    
+    // تحديث الرموز
+    document.querySelectorAll('.cur').forEach(el => {
+        if (selectedCurrency) {
+            el.textContent = selectedCurrency.code;
+        }
+    });
+    
+    if (selectedCurrency) {
+        const outCur = $("#outCur");
+        const outFlag = $("#outFlag");
+        if (outCur) outCur.textContent = selectedCurrency.code;
+        if (outFlag) outFlag.src = `https://flagcdn.com/w40/${selectedCurrency.flag}.png`;
+    }
+    
+    // تحديث القائمة المنسدلة
+    const select = $("#unitSelect");
+    if (select && selectedType) {
+        select.value = selectedType.id;
+    }
+}
+
+// ============================================================================
+// 🔥 CORE FUNCTIONS
+// ============================================================================
+
 function selectCurrency(code) {
-    const c = currencyMap.get(code);
-    if (!c) {
+    const currency = currencyMap.get(code);
+    if (!currency) {
         console.log('❌ العملة غير موجودة:', code);
         return;
     }
     
-    selectedCurrency = c;
+    selectedCurrency = currency;
     setActiveUI();
     renderPricesFromData();
+    saveUserPreferences();
     console.log('✅ تم تغيير العملة إلى:', code);
 }
 
-// 🔥 دالة تغيير نوع الذهب - تم إصلاح الخطأ هنا
 function selectType(typeId) {
     const type = typeMap.get(typeId);
     if (!type) {
@@ -387,208 +481,62 @@ function selectType(typeId) {
     selectedType = type;
     setActiveUI();
     renderPricesFromData();
+    saveUserPreferences();
     console.log('✅ تم تغيير النوع إلى:', typeId);
 }
 
-// 🔥 بناء الواجهة
-function buildUI() {
-    buildCornerFlags();
-    
-    const tcont = $("#typesScroll");
-    if (tcont) {
-        tcont.innerHTML = '';
-        types.forEach(t => {
-            const d = document.createElement('div');
-            d.className = 'type-pill';
-            d.id = t.id;
-            d.innerHTML = `
-                <div class="type-pill-content">
-                    ${t.karat ? `<div class="karat-badge">${t.karat}</div>` : ''}
-                    <div class="type-circle"><img src="${t.img}" alt="${t.labels.ar}"/></div>
-                    <div class="type-label">${t.labels[currentLanguage] || t.labels.ar}</div>
-                </div>
-            `;
-            d.addEventListener('click', () => selectType(t.id));
-            tcont.appendChild(d);
-        });
-    }
+// ============================================================================
+// 🔥 DATA FETCHING FUNCTIONS
+// ============================================================================
 
-    const sel = $("#unitSelect");
-    if (sel) {
-        sel.innerHTML = '';
-        types.forEach(t => {
-            const o = document.createElement('option');
-            o.value = t.id;
-            o.textContent = t.labels[currentLanguage] || t.labels.ar;
-            sel.appendChild(o);
-        });
-        
-        if (selectedType && selectedType.id) {
-            sel.value = selectedType.id;
-        } else {
-            sel.value = "gram24";
-            selectedType = typeMap.get("gram24");
-        }
-    }
-}
-
-// 🔥 تعيين الواجهة النشطة
-function setActiveUI() {
-    document.querySelectorAll('.type-pill').forEach(e => e.classList.remove('active'));
-    
-    if (selectedType && selectedType.id) {
-        const s = document.getElementById(selectedType.id);
-        if (s) s.classList.add('active');
-    }
-
-    document.querySelectorAll('.currency-tab').forEach(tab => {
-        tab.classList.remove('active');
-        if (selectedCurrency && tab.dataset.currency === selectedCurrency.code) {
-            tab.classList.add('active');
-        }
-    });
-
-    document.querySelectorAll('.cur').forEach(e => {
-        if (selectedCurrency) {
-            e.textContent = selectedCurrency.code;
-        }
-    });
-
-    if (selectedCurrency) {
-        $("#outCur").textContent = selectedCurrency.code;
-        $("#outFlag").src = `https://flagcdn.com/w40/${selectedCurrency.flag}.png`;
-    }
-
-    const sel = $("#unitSelect");
-    if (sel && selectedType && selectedType.id) {
-        sel.value = selectedType.id;
-    }
-}
-
-// 🔥 دالة جلب البيانات من server.js - الإصدار المحسن مع التحقق
 async function fetchData() {
     console.group('📥 جلب البيانات من السيرفر');
     
     try {
-        // 🔍 1. التحقق من اتصال الإنترنت
+        setStatus('🔄 جاري تحديث البيانات...');
+        
+        // التحقق من اتصال الإنترنت
         if (!navigator.onLine) {
-            console.warn('⚠️ الجهاز غير متصل بالإنترنت');
-            showNotification(
-                currentLanguage === 'ar' 
-                    ? '⚠️ لا يوجد اتصال بالإنترنت' 
-                    : '⚠️ No internet connection',
-                'warning'
-            );
             throw new Error('NO_INTERNET');
         }
         
-        setStatus('🔄 جاري تحديث البيانات...');
-        
-        // 🔍 2. التحقق من تعريف API_BASE
+        // بناء URL
         const apiBase = window.location.origin;
-        console.log('🌐 API_BASE:', apiBase);
-        
-        // 🔍 3. بناء URL
         const apiUrl = `${apiBase}/api/prices`;
         console.log('📡 رابط API:', apiUrl);
         
-        // 🔧 4. إعداد الطلب مع timeout
+        // إعداد الطلب مع timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-            console.warn('⏰ انتهى وقت الانتظار (10 ثوانٍ)');
             controller.abort();
         }, 10000);
         
-        // 📡 5. إرسال الطلب
-        console.log('📤 إرسال طلب GET...');
+        // إرسال الطلب
         const response = await fetch(apiUrl, {
             signal: controller.signal,
             headers: {
                 'Accept': 'application/json',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
+                'Cache-Control': 'no-cache'
             }
         });
         
         clearTimeout(timeoutId);
         
-        // 🔍 6. التحقق من استجابة السيرفر
-        console.log('📥 حالة الاستجابة:', response.status, response.statusText);
-        
         if (!response.ok) {
-            console.error('❌ استجابة خاطئة:', response.status);
-            
-            // محاولة الحصول على رسالة الخطأ
-            let errorMessage = `خطأ ${response.status}: ${response.statusText}`;
-            try {
-                const errorData = await response.text();
-                if (errorData) {
-                    console.error('📄 محتوى الخطأ:', errorData);
-                    errorMessage = `خطأ ${response.status}: ${errorData.substring(0, 100)}`;
-                }
-            } catch (e) {
-                console.warn('⚠️ تعذر قراءة رسالة الخطأ:', e);
-            }
-            
-            throw new Error(`SERVER_ERROR: ${errorMessage}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // 🔍 7. التحقق من نوع المحتوى
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            console.error('❌ نوع المحتوى غير متوقع:', contentType);
-            throw new Error('INVALID_CONTENT_TYPE');
-        }
-        
-        // 🔍 8. تحليل JSON
+        // تحليل JSON
         const data = await response.json();
-        console.log('✅ بيانات JSON محلاة:', {
-            success: data.success,
-            timestamp: data.timestamp,
-            source: data.source,
-            hasData: !!(data.data && data.data.gold)
-        });
+        console.log('✅ البيانات المستلمة:', data);
         
-        // 🔍 9. التحقق من هيكل البيانات
-        if (!data || typeof data !== 'object') {
-            console.error('❌ بيانات غير صالحة');
-            throw new Error('INVALID_DATA_STRUCTURE');
-        }
+        // حفظ البيانات
+        latestData = data;
         
-        // 🔍 10. معالجة البيانات بناءً على الهيكل
-        if (data.success === false) {
-            console.warn('⚠️ السيرفر أبلغ عن فشل:', data.error);
-            
-            // إذا كانت هناك بيانات احتياطية
-            if (data.fallback && data.data) {
-                console.log('📂 استخدام البيانات الاحتياطية من السيرفر');
-                latestData = data;
-            } else {
-                throw new Error(data.error || 'SERVER_REPORTED_FAILURE');
-            }
-        } else if (data.data && data.data.gold) {
-            console.log('✅ بيانات صحيحة مستلمة');
-            latestData = data;
-        } else if (data.gold_coins) {
-            console.log('✅ بيانات قديمة مستلمة');
-            latestData = data;
-        } else {
-            console.warn('⚠️ هيكل بيانات غير متوقع:', Object.keys(data));
-            
-            // محاولة استخدام البيانات مع التحذير
-            latestData = data;
-            showNotification(
-                currentLanguage === 'ar' 
-                    ? '⚠️ هيكل بيانات غير متوقع' 
-                    : '⚠️ Unexpected data structure',
-                'warning'
-            );
-        }
-        
-        // 🔄 11. تحديث الواجهة
+        // تحديث الواجهة
         renderPricesFromData();
         
-        // ⏰ 12. تحديث وقت التحديث الأخير
+        // تحديث وقت التحديث الأخير
         const updateTime = data.timestamp || 
                           data.last_update || 
                           data['تم التحديث'] || 
@@ -596,10 +544,10 @@ async function fetchData() {
                           new Date().toISOString();
         updateLast(updateTime);
         
-        // ✅ 13. تحديث الحالة
+        // تحديث الحالة
         setStatus('✅ تم التحديث الآن');
         
-        // 🎉 14. إظهار إشعار النجاح
+        // إظهار إشعار النجاح
         const successTime = new Date().toLocaleTimeString(
             currentLanguage === 'ar' ? 'ar-EG' : 
             currentLanguage === 'tr' ? 'tr-TR' : 'en-US'
@@ -612,12 +560,12 @@ async function fetchData() {
             'success'
         );
         
-        // 💾 15. حفظ البيانات محلياً للاستخدام بدون اتصال
+        // حفظ البيانات في localStorage
         try {
             const cacheData = {
                 data: latestData,
                 fetchedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 دقيقة
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
             };
             
             localStorage.setItem('goldPricesCache', JSON.stringify(cacheData));
@@ -632,33 +580,7 @@ async function fetchData() {
     } catch (error) {
         console.error('❌ خطأ في جلب البيانات:', error.message || error);
         
-        // 🚨 16. معالجة أنواع مختلفة من الأخطاء
-        let errorType = 'UNKNOWN';
-        let userMessage = '';
-        
-        if (error.message === 'NO_INTERNET') {
-            errorType = 'NO_INTERNET';
-            userMessage = currentLanguage === 'ar' 
-                ? 'لا يوجد اتصال بالإنترنت' 
-                : 'No internet connection';
-        } else if (error.message.includes('SERVER_ERROR')) {
-            errorType = 'SERVER_ERROR';
-            userMessage = currentLanguage === 'ar' 
-                ? 'خطأ في السيرفر' 
-                : 'Server error';
-        } else if (error.message === 'INVALID_CONTENT_TYPE') {
-            errorType = 'INVALID_CONTENT_TYPE';
-            userMessage = currentLanguage === 'ar' 
-                ? 'استجابة غير صالحة من السيرفر' 
-                : 'Invalid response from server';
-        } else if (error.name === 'AbortError') {
-            errorType = 'TIMEOUT';
-            userMessage = currentLanguage === 'ar' 
-                ? 'انتهى وقت الاتصال' 
-                : 'Connection timeout';
-        }
-        
-        // 📂 17. محاولة استخدام البيانات المخزنة محلياً
+        // محاولة استخدام البيانات المخزنة
         let usedCachedData = false;
         
         try {
@@ -675,20 +597,17 @@ async function fetchData() {
                     
                     showNotification(
                         currentLanguage === 'ar' 
-                            ? '📂 استخدام بيانات محفوظة (غير متصل)' 
+                            ? '📂 استخدام بيانات محفوظة (غير متصل)'
                             : '📂 Using cached data (offline)',
                         'info'
                     );
-                } else {
-                    console.log('⏰ البيانات المخزنة منتهية الصلاحية');
-                    localStorage.removeItem('goldPricesCache');
                 }
             }
         } catch (cacheError) {
             console.warn('⚠️ خطأ في استخدام البيانات المخزنة:', cacheError);
         }
         
-        // 🏗️ 18. إذا لم تكن هناك بيانات مخزنة، استخدم البيانات الافتراضية
+        // استخدام البيانات الافتراضية
         if (!usedCachedData) {
             console.log('🏗️ استخدام البيانات الافتراضية');
             latestData = mockApiData;
@@ -696,72 +615,246 @@ async function fetchData() {
             
             showNotification(
                 currentLanguage === 'ar' 
-                    ? `❌ ${userMessage || 'فشل الاتصال'}. استخدام بيانات محلية`
-                    : `❌ ${userMessage || 'Connection failed'}. Using local data`,
+                    ? '❌ فشل الاتصال. استخدام بيانات محلية'
+                    : '❌ Connection failed. Using local data',
                 'error'
             );
         }
         
-        // 🔄 19. تحديث الواجهة مع البيانات المتاحة
+        // تحديث الواجهة
         renderPricesFromData();
         updateLast(latestData['تم التحديث'] || new Date().toISOString());
         
-        // 📊 20. تسجيل الخطأ للإحصاءات
-        try {
-            const errorLog = {
-                timestamp: new Date().toISOString(),
-                error: error.message || error.toString(),
-                type: errorType,
-                url: window.location.origin + '/api/prices',
-                online: navigator.onLine,
-                usedCache: usedCachedData
-            };
-            
-            const errors = JSON.parse(localStorage.getItem('fetchErrors') || '[]');
-            errors.push(errorLog);
-            if (errors.length > 100) errors.shift();
-            localStorage.setItem('fetchErrors', JSON.stringify(errors));
-        } catch (logError) {
-            console.warn('⚠️ تعذر تسجيل الخطأ:', logError);
-        }
-        
     } finally {
-        // 🔧 21. تنظيف الموارد
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.disabled = false;
-            refreshBtn.innerHTML = currentLanguage === 'ar' 
-                ? '<i class="fas fa-sync-alt"></i> تحديث'
-                : '<i class="fas fa-sync-alt"></i> Refresh';
-        }
-        
         console.groupEnd();
     }
 }
 
-// 🔥 دالة مساعدة لاختبار اتصال السيرفر
-async function testServerConnection() {
-    try {
-        const apiBase = window.location.origin;
-        const response = await fetch(`${apiBase}/api/health`, {
-            signal: AbortSignal.timeout(3000)
-        });
+// ============================================================================
+// 🔥 PRICE CALCULATION FUNCTIONS
+// ============================================================================
+
+function getGramBase() {
+    if (!latestData) return 5790.8;
+    
+    if (latestData.price_gram_try) {
+        return parseFloat(latestData.price_gram_try);
+    }
+    
+    if (latestData.data && latestData.data.gold && latestData.data.gold.gram24) {
+        return parseFloat(latestData.data.gold.gram24.buy?.TRY || 
+                         latestData.data.gold.gram24.sell?.TRY || 5790.8);
+    }
+    
+    return 5790.8;
+}
+
+function renderPricesFromData() {
+    if (!latestData) {
+        latestData = mockApiData;
+    }
+
+    let buy = 0;
+    let sell = 0;
+    let foundData = false;
+
+    // المحاولة الأولى: البيانات الجديدة من server.js
+    if (latestData.data && latestData.data.gold) {
+        const goldData = latestData.data.gold;
+        const selectedGold = goldData[selectedType.id];
         
-        return {
-            online: response.ok,
-            status: response.status,
-            statusText: response.statusText
-        };
-    } catch (error) {
-        return {
-            online: false,
-            error: error.message
-        };
+        if (selectedGold && selectedGold.buy && selectedGold.sell) {
+            buy = selectedGold.buy[selectedCurrency.code];
+            sell = selectedGold.sell[selectedCurrency.code];
+            
+            if (buy && sell) {
+                buy = parseFloat(buy);
+                sell = parseFloat(sell);
+                foundData = true;
+                console.log('💰 استخدام البيانات الجديدة من server.js');
+            }
+        }
+    }
+
+    // المحاولة الثانية: البيانات القديمة
+    if (!foundData && latestData.gold_coins) {
+        const coinData = latestData.gold_coins;
+        const coinKey = selectedType.id;
+        
+        if (coinData[coinKey]) {
+            const coin = coinData[coinKey];
+            
+            if (coin.buy && typeof coin.buy === 'object') {
+                buy = coin.buy[selectedCurrency.code];
+                sell = coin.sell[selectedCurrency.code];
+            } else {
+                buy = coin.buy;
+                sell = coin.sell;
+            }
+            
+            if (buy && sell) {
+                buy = parseFloat(buy);
+                sell = parseFloat(sell);
+                foundData = true;
+                console.log('💰 استخدام البيانات القديمة');
+            }
+        }
+    }
+
+    // المحاولة الثالثة: الحساب اليدوي
+    if (!foundData) {
+        console.log('🔄 استخدام الحساب اليدوي...');
+        const gramTry = getGramBase();
+        let fxRate = 1;
+        
+        if (latestData.fx && typeof latestData.fx === 'object') {
+            const fxMap = new Map(Object.entries(latestData.fx));
+            if (fxMap.has(selectedCurrency.code)) {
+                fxRate = parseFloat(fxMap.get(selectedCurrency.code));
+            }
+        }
+
+        let finalPrice = gramTry;
+        
+        switch(selectedType.id) {
+            case "gram24": finalPrice *= 1; break;
+            case "gram22": finalPrice *= 0.916; break;
+            case "gram21": finalPrice *= 0.875; break;
+            case "gram18": finalPrice *= 0.75; break;
+            case "gram14": finalPrice *= 0.583; break;
+            case "lira": finalPrice *= 7.32; break;
+            case "half": finalPrice *= 3.66; break;
+            case "quarter": finalPrice *= 1.83; break;
+            case "ounce": finalPrice *= 31.1035; break;
+            case "silver": finalPrice *= 0.012; break;
+            default: finalPrice *= 1; break;
+        }
+
+        finalPrice *= fxRate;
+        const spread = 0.012; // 1.2%
+        buy = +(finalPrice * (1 + spread/2)).toFixed(2);
+        sell = +(finalPrice * (1 - spread/2)).toFixed(2);
+    }
+
+    console.log('💰 الأسعار النهائية:', { 
+        buy, 
+        sell, 
+        currency: selectedCurrency.code,
+        type: selectedType.id 
+    });
+
+    const previousBuy = parseFloat($("#buyPrice")?.textContent?.replace(/[^\d.]/g, '')) || buy;
+    const previousSell = parseFloat($("#sellPrice")?.textContent?.replace(/[^\d.]/g, '')) || sell;
+    
+    const buyChangePercent = previousBuy ? ((buy - previousBuy) / previousBuy) * 100 : 0;
+    const sellChangePercent = previousSell ? ((sell - previousSell) / previousSell) * 100 : 0;
+
+    animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), buyChangePercent, 'buy');
+    animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), sellChangePercent, 'sell');
+
+    const qty = parseFloat($("#qty")?.value) || 1;
+    const resultValue = sell * qty;
+    
+    if ($("#result")) {
+        $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
     }
 }
 
-// 🔥 التهيئة عند تحميل الصفحة مع التحقق من السيرفر
-document.addEventListener('DOMContentLoaded', async function() {
+// ============================================================================
+// 🔥 PREFERENCES MANAGEMENT
+// ============================================================================
+
+function loadUserPreferences() {
+    try {
+        // تحميل اللغة
+        const savedLang = localStorage.getItem('siteLanguage') || localStorage.getItem('language');
+        if (savedLang && ['ar', 'en', 'tr'].includes(savedLang)) {
+            changeLanguage(savedLang);
+        }
+
+        // تحميل التفضيلات الأخرى
+        const prefs = JSON.parse(localStorage.getItem('goldAppPrefs') || '{}');
+        
+        if (prefs.selectedType && typeMap.has(prefs.selectedType)) {
+            selectedType = typeMap.get(prefs.selectedType);
+        }
+        
+        if (prefs.selectedCurrency && currencyMap.has(prefs.selectedCurrency)) {
+            selectedCurrency = currencyMap.get(prefs.selectedCurrency);
+        }
+        
+        console.log('✅ التفضيلات المحملة:', { 
+            language: currentLanguage,
+            type: selectedType.id,
+            currency: selectedCurrency.code
+        });
+    } catch (error) {
+        console.warn('⚠️ خطأ في تحميل التفضيلات:', error);
+        // استخدام القيم الافتراضية
+        selectedType = typeMap.get("gram24");
+        selectedCurrency = currencyMap.get("TRY");
+    }
+}
+
+function saveUserPreferences() {
+    try {
+        const prefs = {
+            language: currentLanguage,
+            selectedType: selectedType.id,
+            selectedCurrency: selectedCurrency.code,
+            quantity: $('#qty')?.value || 1,
+            lastUsed: new Date().toISOString()
+        };
+        
+        localStorage.setItem('goldAppPrefs', JSON.stringify(prefs));
+    } catch (error) {
+        console.warn('⚠️ خطأ في حفظ التفضيلات:', error);
+    }
+}
+
+// ============================================================================
+// 🔥 EVENT LISTENERS
+// ============================================================================
+
+function setupEventListeners() {
+    // زر التحديث
+    const refreshBtn = $("#refreshBtn");
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', fetchData);
+    }
+
+    // القائمة المنسدلة للأنواع
+    const unitSelect = $("#unitSelect");
+    if (unitSelect) {
+        unitSelect.addEventListener('change', (e) => {
+            selectType(e.target.value);
+        });
+    }
+
+    // حقل الكمية
+    const qtyInput = $("#qty");
+    if (qtyInput) {
+        qtyInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                renderPricesFromData();
+                saveUserPreferences();
+            }, 300);
+        });
+    }
+}
+
+function cleanup() {
+    if (autoTimer) clearInterval(autoTimer);
+    if (newsTimer) clearInterval(newsTimer);
+    if (debounceTimer) clearTimeout(debounceTimer);
+}
+
+// ============================================================================
+// 🔥 MAIN INITIALIZATION
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 تطبيق أسعار الذهب يعمل...');
     
     // 1. تحميل التفضيلات
@@ -770,7 +863,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 2. بناء الواجهة
     buildUI();
     
-    // 3. إعداد الواجهة النشطة
+    // 3. إعداد الواجهة
     setTimeout(() => {
         setActiveUI();
         updateAllTexts();
@@ -778,53 +871,36 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateCurrencyLabels();
         setupEventListeners();
         
-        // 4. اختبار اتصال السيرفر أولاً
-        testServerConnection().then(serverStatus => {
-            console.log('🔍 حالة السيرفر:', serverStatus);
-            
-            if (serverStatus.online) {
-                // 5. جلب البيانات الجديدة
-                fetchData();
-                
-                // 6. جدولة التحديث التلقائي كل 5 دقائق
-                autoTimer = setInterval(fetchData, 5 * 60 * 1000);
-            } else {
-                // 7. استخدام البيانات المخزنة أو الافتراضية
-                console.warn('⚠️ السيرفر غير متوفر:', serverStatus.error);
-                
-                try {
-                    const cached = localStorage.getItem('goldPricesCache');
-                    if (cached) {
-                        const cache = JSON.parse(cached);
-                        if (new Date(cache.expiresAt) > new Date()) {
-                            latestData = cache.data;
-                            renderPricesFromData();
-                            setStatus('📂 استخدام بيانات محفوظة');
-                            showNotification(
-                                currentLanguage === 'ar' 
-                                    ? '📂 استخدام بيانات محفوظة (سيرفر غير متاح)'
-                                    : '📂 Using cached data (server unavailable)',
-                                'info'
-                            );
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    console.warn('⚠️ خطأ في البيانات المخزنة:', e);
-                }
-                
-                // 8. استخدام البيانات الافتراضية
-                latestData = mockApiData;
-                renderPricesFromData();
-                setStatus('❌ استخدام بيانات محلية');
-                showNotification(
-                    currentLanguage === 'ar' 
-                        ? '❌ السيرفر غير متاح. استخدام بيانات محلية'
-                        : '❌ Server unavailable. Using local data',
-                    'warning'
-                );
-            }
-        });
+        // 4. جلب البيانات
+        fetchData();
         
+        // 5. جدولة التحديث التلقائي (كل 5 دقائق)
+        autoTimer = setInterval(fetchData, 5 * 60 * 1000);
+        
+        console.log('✅ التطبيق مهيأ وجاهز للعمل');
     }, 100);
+});
+
+// تنظيف الموارد عند إغلاق الصفحة
+window.addEventListener('beforeunload', cleanup);
+window.addEventListener('pagehide', cleanup);
+
+// التعامل مع اتصال الشبكة
+window.addEventListener('online', () => {
+    showNotification(
+        currentLanguage === 'ar' 
+            ? '🌐 تم استعادة الاتصال بالإنترنت'
+            : '🌐 Internet connection restored',
+        'success'
+    );
+    fetchData();
+});
+
+window.addEventListener('offline', () => {
+    showNotification(
+        currentLanguage === 'ar' 
+            ? '⚠️ فقدان الاتصال بالإنترنت'
+            : '⚠️ Internet connection lost',
+        'warning'
+    );
 });
