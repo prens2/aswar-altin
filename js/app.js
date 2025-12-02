@@ -421,38 +421,57 @@ function protectChartFromDisappearing() {
   });
 }
 
-// 🔥 دالة تغيير اللغة المحسنة - الإصدار النهائي
-function changeLanguage(lang) {
+// 🔥 دالة تغيير اللغة المحسنة - الإصدار النهائي  
+function changeLanguage(lang) {  
     // 🔥 تحقق من أن lang معرف وصحيح
-    if (!lang || !['ar', 'en', 'tr'].includes(lang)) {
-        console.error('❌ اللغة غير معرفة أو غير صالحة:', lang);
-        lang = 'ar'; // استخدم العربية كافتراضي
+    if (!lang || !['ar', 'en', 'tr'].includes(lang)) { 
+        console.warn('⚠️ لغة غير معترف بها، استخدام العربية كافتراضي:', lang); 
+        lang = 'ar';
+    }  
+
+    // 🔥 إذا كانت اللغة هي نفسها الحالية، لا تفعل شيء
+    if (currentLanguage === lang) {
+        console.log('ℹ️ اللغة الحالية هي نفس المطلوبة:', lang);
+        return;
     }
-    
-    currentLanguage = lang;
-    
-    try {
-        // تحديث كل النصوص
+
+    currentLanguage = lang;  
+
+    try {  
+        // 🔥 تحديث كل النصوص
         updateAllTexts();
         updateGoldTypeLabels();
         updateCurrencyLabels();
         protectChartFromDisappearing();
-        
-        // حفظ التفضيل
+
+        // 🔥 تحديث اتجاه الصفحة للغة العربية
+        if (lang === 'ar') {
+            document.documentElement.dir = 'rtl';
+            document.documentElement.lang = 'ar';
+        } else {
+            document.documentElement.dir = 'ltr';
+            document.documentElement.lang = lang;
+        }
+
+        // 🔥 حفظ التفضيل
         localStorage.setItem('language', lang);
-        
+        localStorage.setItem('siteLanguage', lang);
+
         console.log('✅ اللغة تغيرت إلى:', lang);
-    } catch (error) {
+        
+        // 🔥 إظهار الإشعار
+        const messages = {
+            'ar': 'تم تغيير اللغة إلى العربية',
+            'en': 'Language changed to English',
+            'tr': 'Dil Türkçe olarak değiştirildi'
+        };
+        
+        showNotification(messages[lang] || messages['ar'], 'success');
+        
+    } catch (error) { 
         console.error('❌ خطأ في تغيير اللغة:', error);
+        showNotification('حدث خطأ في تغيير اللغة', 'error');
     }
-}
-    
-    localStorage.setItem('siteLanguage', lang);
-    showNotification(
-        lang === 'ar' ? 'تم تغيير اللغة إلى العربية' : 
-        lang === 'en' ? 'Language changed to English' : 'Dil Türkçe olarak değiştirildi',
-        'success'
-    );
 }
     
 // 🔥 حل بديل فوري - أضف هذا في النهاية
