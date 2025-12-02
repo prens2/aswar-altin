@@ -489,54 +489,176 @@ function selectType(typeId) {
 // 🔥 DATA FETCHING FUNCTIONS
 // ============================================================================
 
+// 🔥 دالة جلب البيانات مع معالجة خاصة لخطأ 404
 async function fetchData() {
     console.group('📥 جلب البيانات من السيرفر');
     
     try {
         setStatus('🔄 جاري تحديث البيانات...');
         
-        // التحقق من اتصال الإنترنت
+        // 1️⃣ التحقق من اتصال الإنترنت
         if (!navigator.onLine) {
+            console.warn('⚠️ الجهاز غير متصل بالإنترنت');
             throw new Error('NO_INTERNET');
         }
         
-        // بناء URL
-        const apiBase = window.location.origin;
-        const apiUrl = `${apiBase}/api/prices`;
-        console.log('📡 رابط API:', apiUrl);
+        // 2️⃣ بناء URL - استخدام الرابط المباشر من الصورة
+        // بدلاً من window.location.origin استخدم الرابط المباشر
+        const apiUrl = 'https://amap-altin.ueeeel.app/api/prices';
+        console.log('📡 رابط API المستخدم:', apiUrl);
         
-        // إعداد الطلب مع timeout
+        // 3️⃣ إعداد الطلب مع تحسين الـ headers
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
+            console.warn('⏰ انتهى وقت الانتظار (10 ثوانٍ)');
             controller.abort();
         }, 10000);
         
-        // إرسال الطلب
+        // 4️⃣ إرسال الطلب
+        console.log('📤 إرسال طلب GET...');
         const response = await fetch(apiUrl, {
             signal: controller.signal,
             headers: {
                 'Accept': 'application/json',
-                'Cache-Control': 'no-cache'
-            }
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            },
+            mode: 'cors',
+            credentials: 'omit'
         });
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // 5️⃣ تحليل الاستجابة
+        console.log('📥 حالة الاستجابة:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            url: response.url
+        });
+        
+        // 6️⃣ معالجة خطأ 404 بشكل خاص
+        if (response.status === 404) {
+            console.error('❌ خطأ 404: نقطة النهاية غير موجودة');
+            
+            // حاول قراءة محتوى الاستجابة لمعرفة المزيد
+            try {
+                const errorHtml = await response.text();
+                console.log('📄 محتوى خطأ 404 (أول 500 حرف):', errorHtml.substring(0, 500));
+                
+                // تحقق إذا كان هناك رسالة خطأ محددة
+                if (errorHtml.includes('Not Found') || errorHtml.includes('404')) {
+                    console.log('🔍 تم تأكيد خطأ 404: صفحة غير موجودة');
+                }
+            } catch (e) {
+                console.warn('⚠️ تعذر قراءة محتوى الخطأ:', e.message);
+            }
+            
+            // حاول استخدام endpoints بديلة
+            const alternativeData = await tryAlternativeEndpoints();
+            if (alternativeData) {
+                console.log('✅ نجحت المحاولة مع endpoint بديل');
+                latestData = alternativeData;
+            } else {
+                throw new Error('API_ENDPOINT_NOT_FOUND');
+            }
+        } 
+        // 7️⃣ معالجة أخطاء HTTP الأخرى
+        else if (!response.ok) {
+            console.error(`❌ خطأ HTTP: ${response.status} ${response.statusText}`);
+            
+            // حاول قراءة رسالة الخطأ
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+                const errorText = await response.text();
+                if (errorText) {
+                    errorMessage = `${errorMessage}: ${errorText.substring(0, 100)}`;
+                }
+            } catch (e) {
+                // تجاهل إذا تعذر قراءة محتوى الخطأ
+            }
+            
+            throw new Error(errorMessage);
         }
         
-        // تحليل JSON
-        const data = await response.json();
-        console.log('✅ البيانات المستلمة:', data);
+        // 8️⃣ تحليل محتوى الاستجابة
+        const contentType = response.headers.get('content-type') || '';
+        console.log('📄 نوع المحتوى:', contentType);
         
-        // حفظ البيانات
+        let data;
+        
+        // تحقق إذا كان المحتوى JSON
+        if (contentType.includes('application/json')) {
+            data = await response.json();
+            console.log('✅ JSON محلل بنجاح');
+        } 
+        // إذا كان HTML، حاول استخراج JSON منه
+        else if (contentType.includes('text/html')) {
+            console.warn('⚠️ الاستجابة هي HTML، محاولة استخراج JSON...');
+            const html = await response.text();
+            
+            // ابحث عن JSON في HTML
+            const jsonMatch = html.match(/<script[^>]*>.*?({.*}).*?<\/script>/s) || 
+                             html.match(/\{.*\}/s);
+            
+            if (jsonMatch && jsonMatch[1]) {
+                try {
+                    data = JSON.parse(jsonMatch[1]);
+                    console.log('✅ تم استخراج JSON من HTML');
+                } catch (parseError) {
+                    console.error('❌ فشل في تحليل JSON من HTML:', parseError.message);
+                    throw new Error('INVALID_JSON_IN_HTML');
+                }
+            } else {
+                console.error('❌ لم يتم العثور على JSON في HTML');
+                throw new Error('NO_JSON_IN_HTML');
+            }
+        }
+        // إذا كان نصاً عادياً، حاول تحليله كـ JSON
+        else if (contentType.includes('text/plain')) {
+            const text = await response.text();
+            try {
+                data = JSON.parse(text);
+                console.log('✅ JSON محلل من نص عادي');
+            } catch (parseError) {
+                console.error('❌ النص ليس JSON صالح:', parseError.message);
+                throw new Error('INVALID_JSON_TEXT');
+            }
+        }
+        // إذا كان نوع محتوى غير معروف
+        else {
+            console.warn('⚠️ نوع محتوى غير معروف، محاولة التحليل كـ JSON...');
+            try {
+                const text = await response.text();
+                data = JSON.parse(text);
+                console.log('✅ JSON محلل من نوع غير معروف');
+            } catch (parseError) {
+                console.error('❌ فشل في تحليل البيانات:', parseError.message);
+                throw new Error('UNKNOWN_CONTENT_TYPE');
+            }
+        }
+        
+        // 9️⃣ التحقق من صحة البيانات
+        if (!data || typeof data !== 'object') {
+            console.error('❌ بيانات غير صالحة:', data);
+            throw new Error('INVALID_DATA');
+        }
+        
+        // 🔟 حفظ البيانات
         latestData = data;
+        console.log('✅ البيانات محفوظة:', {
+            hasData: !!(data.data || data.gold_coins),
+            timestamp: data.timestamp || data['تم التحديث'],
+            success: data.success
+        });
         
-        // تحديث الواجهة
+        // 1️⃣1️⃣ تحديث الواجهة
         renderPricesFromData();
         
-        // تحديث وقت التحديث الأخير
+        // 1️⃣2️⃣ تحديث وقت التحديث الأخير
         const updateTime = data.timestamp || 
                           data.last_update || 
                           data['تم التحديث'] || 
@@ -544,10 +666,10 @@ async function fetchData() {
                           new Date().toISOString();
         updateLast(updateTime);
         
-        // تحديث الحالة
+        // 1️⃣3️⃣ تحديث الحالة
         setStatus('✅ تم التحديث الآن');
         
-        // إظهار إشعار النجاح
+        // 1️⃣4️⃣ إظهار إشعار النجاح
         const successTime = new Date().toLocaleTimeString(
             currentLanguage === 'ar' ? 'ar-EG' : 
             currentLanguage === 'tr' ? 'tr-TR' : 'en-US'
@@ -560,12 +682,13 @@ async function fetchData() {
             'success'
         );
         
-        // حفظ البيانات في localStorage
+        // 1️⃣5️⃣ حفظ البيانات في localStorage
         try {
             const cacheData = {
                 data: latestData,
                 fetchedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 دقيقة
+                source: apiUrl
             };
             
             localStorage.setItem('goldPricesCache', JSON.stringify(cacheData));
@@ -580,7 +703,35 @@ async function fetchData() {
     } catch (error) {
         console.error('❌ خطأ في جلب البيانات:', error.message || error);
         
-        // محاولة استخدام البيانات المخزنة
+        // 🔄 معالجة أنواع مختلفة من الأخطاء
+        let errorType = 'UNKNOWN';
+        let userMessage = '';
+        
+        if (error.message === 'NO_INTERNET') {
+            errorType = 'NO_INTERNET';
+            userMessage = currentLanguage === 'ar' 
+                ? 'لا يوجد اتصال بالإنترنت' 
+                : 'No internet connection';
+        } else if (error.message === 'API_ENDPOINT_NOT_FOUND') {
+            errorType = 'API_NOT_FOUND';
+            userMessage = currentLanguage === 'ar' 
+                ? 'API غير موجود (404)' 
+                : 'API not found (404)';
+        } else if (error.message.includes('HTTP')) {
+            errorType = 'HTTP_ERROR';
+            userMessage = currentLanguage === 'ar' 
+                ? `خطأ في السيرفر: ${error.message}` 
+                : `Server error: ${error.message}`;
+        } else if (error.name === 'AbortError') {
+            errorType = 'TIMEOUT';
+            userMessage = currentLanguage === 'ar' 
+                ? 'انتهى وقت الاتصال' 
+                : 'Connection timeout';
+        }
+        
+        console.log(`📊 نوع الخطأ: ${errorType}`);
+        
+        // 📂 محاولة استخدام البيانات المخزنة محلياً
         let usedCachedData = false;
         
         try {
@@ -597,17 +748,20 @@ async function fetchData() {
                     
                     showNotification(
                         currentLanguage === 'ar' 
-                            ? '📂 استخدام بيانات محفوظة (غير متصل)'
+                            ? '📂 استخدام بيانات محفوظة (غير متصل)' 
                             : '📂 Using cached data (offline)',
                         'info'
                     );
+                } else {
+                    console.log('⏰ البيانات المخزنة منتهية الصلاحية');
+                    localStorage.removeItem('goldPricesCache');
                 }
             }
         } catch (cacheError) {
             console.warn('⚠️ خطأ في استخدام البيانات المخزنة:', cacheError);
         }
         
-        // استخدام البيانات الافتراضية
+        // 🏗️ إذا لم تكن هناك بيانات مخزنة، استخدم البيانات الافتراضية
         if (!usedCachedData) {
             console.log('🏗️ استخدام البيانات الافتراضية');
             latestData = mockApiData;
@@ -615,246 +769,159 @@ async function fetchData() {
             
             showNotification(
                 currentLanguage === 'ar' 
-                    ? '❌ فشل الاتصال. استخدام بيانات محلية'
-                    : '❌ Connection failed. Using local data',
+                    ? `❌ ${userMessage || 'فشل الاتصال'}. استخدام بيانات محلية`
+                    : `❌ ${userMessage || 'Connection failed'}. Using local data`,
                 'error'
             );
         }
         
-        // تحديث الواجهة
+        // 🔄 تحديث الواجهة مع البيانات المتاحة
         renderPricesFromData();
         updateLast(latestData['تم التحديث'] || new Date().toISOString());
+        
+        // 📊 تسجيل الخطأ للإحصاءات
+        try {
+            const errorLog = {
+                timestamp: new Date().toISOString(),
+                error: error.message || error.toString(),
+                type: errorType,
+                url: 'https://amap-altin.ueeeel.app/api/prices',
+                online: navigator.onLine,
+                usedCache: usedCachedData,
+                userAgent: navigator.userAgent
+            };
+            
+            const errors = JSON.parse(localStorage.getItem('fetchErrors') || '[]');
+            errors.push(errorLog);
+            if (errors.length > 50) errors.shift();
+            localStorage.setItem('fetchErrors', JSON.stringify(errors));
+        } catch (logError) {
+            console.warn('⚠️ تعذر تسجيل الخطأ:', logError);
+        }
         
     } finally {
         console.groupEnd();
     }
 }
 
-// ============================================================================
-// 🔥 PRICE CALCULATION FUNCTIONS
-// ============================================================================
-
-function getGramBase() {
-    if (!latestData) return 5790.8;
+// 🔥 دالة لمحاولة endpoints بديلة
+async function tryAlternativeEndpoints() {
+    console.log('🔄 محاولة استخدام endpoints بديلة...');
     
-    if (latestData.price_gram_try) {
-        return parseFloat(latestData.price_gram_try);
-    }
+    const baseUrl = 'https://amap-altin.ueeeel.app';
+    const alternativeEndpoints = [
+        `${baseUrl}/prices`,           // بدون /api
+        `${baseUrl}/api/gold-prices`,  // مسار مختلف
+        `${baseUrl}/api/data`,         // مسار آخر
+        `${baseUrl}/api/`,             // المسار الأساسي
+        `${baseUrl}/gold-prices`,      // مسار مباشر
+        `${baseUrl}/data`,             // مسار بيانات
+        `${baseUrl}/api/v1/prices`,    // إصدار API
+        `${baseUrl}/api/v1/gold`       // إصدار API آخر
+    ];
     
-    if (latestData.data && latestData.data.gold && latestData.data.gold.gram24) {
-        return parseFloat(latestData.data.gold.gram24.buy?.TRY || 
-                         latestData.data.gold.gram24.sell?.TRY || 5790.8);
-    }
-    
-    return 5790.8;
-}
-
-function renderPricesFromData() {
-    if (!latestData) {
-        latestData = mockApiData;
-    }
-
-    let buy = 0;
-    let sell = 0;
-    let foundData = false;
-
-    // المحاولة الأولى: البيانات الجديدة من server.js
-    if (latestData.data && latestData.data.gold) {
-        const goldData = latestData.data.gold;
-        const selectedGold = goldData[selectedType.id];
-        
-        if (selectedGold && selectedGold.buy && selectedGold.sell) {
-            buy = selectedGold.buy[selectedCurrency.code];
-            sell = selectedGold.sell[selectedCurrency.code];
+    for (const endpoint of alternativeEndpoints) {
+        try {
+            console.log(`🔍 محاولة: ${endpoint}`);
             
-            if (buy && sell) {
-                buy = parseFloat(buy);
-                sell = parseFloat(sell);
-                foundData = true;
-                console.log('💰 استخدام البيانات الجديدة من server.js');
-            }
-        }
-    }
-
-    // المحاولة الثانية: البيانات القديمة
-    if (!foundData && latestData.gold_coins) {
-        const coinData = latestData.gold_coins;
-        const coinKey = selectedType.id;
-        
-        if (coinData[coinKey]) {
-            const coin = coinData[coinKey];
+            const response = await fetch(endpoint, { 
+                signal: AbortSignal.timeout(5000),
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
             
-            if (coin.buy && typeof coin.buy === 'object') {
-                buy = coin.buy[selectedCurrency.code];
-                sell = coin.sell[selectedCurrency.code];
-            } else {
-                buy = coin.buy;
-                sell = coin.sell;
-            }
+            console.log(`📊 النتيجة: ${response.status} ${response.statusText}`);
             
-            if (buy && sell) {
-                buy = parseFloat(buy);
-                sell = parseFloat(sell);
-                foundData = true;
-                console.log('💰 استخدام البيانات القديمة');
+            if (response.ok) {
+                const contentType = response.headers.get('content-type') || '';
+                
+                if (contentType.includes('application/json')) {
+                    const data = await response.json();
+                    console.log(`✅ نجحت المحاولة مع ${endpoint}`);
+                    return data;
+                } else if (contentType.includes('text/html')) {
+                    // حاول استخراج JSON من HTML
+                    const html = await response.text();
+                    const jsonMatch = html.match(/\{.*\}/s);
+                    
+                    if (jsonMatch) {
+                        try {
+                            const data = JSON.parse(jsonMatch[0]);
+                            console.log(`✅ تم استخراج JSON من HTML في ${endpoint}`);
+                            return data;
+                        } catch (e) {
+                            console.log(`❌ JSON غير صالح في ${endpoint}`);
+                        }
+                    }
+                }
             }
+        } catch (error) {
+            console.log(`❌ فشلت المحاولة مع ${endpoint}: ${error.message}`);
         }
     }
-
-    // المحاولة الثالثة: الحساب اليدوي
-    if (!foundData) {
-        console.log('🔄 استخدام الحساب اليدوي...');
-        const gramTry = getGramBase();
-        let fxRate = 1;
-        
-        if (latestData.fx && typeof latestData.fx === 'object') {
-            const fxMap = new Map(Object.entries(latestData.fx));
-            if (fxMap.has(selectedCurrency.code)) {
-                fxRate = parseFloat(fxMap.get(selectedCurrency.code));
-            }
-        }
-
-        let finalPrice = gramTry;
-        
-        switch(selectedType.id) {
-            case "gram24": finalPrice *= 1; break;
-            case "gram22": finalPrice *= 0.916; break;
-            case "gram21": finalPrice *= 0.875; break;
-            case "gram18": finalPrice *= 0.75; break;
-            case "gram14": finalPrice *= 0.583; break;
-            case "lira": finalPrice *= 7.32; break;
-            case "half": finalPrice *= 3.66; break;
-            case "quarter": finalPrice *= 1.83; break;
-            case "ounce": finalPrice *= 31.1035; break;
-            case "silver": finalPrice *= 0.012; break;
-            default: finalPrice *= 1; break;
-        }
-
-        finalPrice *= fxRate;
-        const spread = 0.012; // 1.2%
-        buy = +(finalPrice * (1 + spread/2)).toFixed(2);
-        sell = +(finalPrice * (1 - spread/2)).toFixed(2);
-    }
-
-    console.log('💰 الأسعار النهائية:', { 
-        buy, 
-        sell, 
-        currency: selectedCurrency.code,
-        type: selectedType.id 
-    });
-
-    const previousBuy = parseFloat($("#buyPrice")?.textContent?.replace(/[^\d.]/g, '')) || buy;
-    const previousSell = parseFloat($("#sellPrice")?.textContent?.replace(/[^\d.]/g, '')) || sell;
     
-    const buyChangePercent = previousBuy ? ((buy - previousBuy) / previousBuy) * 100 : 0;
-    const sellChangePercent = previousSell ? ((sell - previousSell) / previousSell) * 100 : 0;
+    console.log('❌ جميع المحاولات البديلة فشلت');
+    return null;
+}
 
-    animatePriceUpdate('#buyPrice', formatNumber(buy, selectedCurrency.code), buyChangePercent, 'buy');
-    animatePriceUpdate('#sellPrice', formatNumber(sell, selectedCurrency.code), sellChangePercent, 'sell');
-
-    const qty = parseFloat($("#qty")?.value) || 1;
-    const resultValue = sell * qty;
+// 🔥 دالة لاختبار الاتصال بالـ API
+async function testAPIConnection() {
+    console.log('🔍 بدء اختبار اتصال API...');
     
-    if ($("#result")) {
-        $("#result").value = formatNumber(resultValue, selectedCurrency.code) + ' ' + selectedCurrency.code;
-    }
-}
-
-// ============================================================================
-// 🔥 PREFERENCES MANAGEMENT
-// ============================================================================
-
-function loadUserPreferences() {
-    try {
-        // تحميل اللغة
-        const savedLang = localStorage.getItem('siteLanguage') || localStorage.getItem('language');
-        if (savedLang && ['ar', 'en', 'tr'].includes(savedLang)) {
-            changeLanguage(savedLang);
+    const endpoints = [
+        'https://amap-altin.ueeeel.app/api/prices',
+        'https://amap-altin.ueeeel.app/prices',
+        'https://amap-altin.ueeeel.app/api',
+        'https://amap-altin.ueeeel.app/'
+    ];
+    
+    const results = [];
+    
+    for (const endpoint of endpoints) {
+        try {
+            console.log(`🔍 اختبار: ${endpoint}`);
+            
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                signal: AbortSignal.timeout(3000),
+                headers: {
+                    'Accept': 'text/html,application/json'
+                }
+            });
+            
+            const contentType = response.headers.get('content-type') || '';
+            const isJson = contentType.includes('application/json');
+            const isHtml = contentType.includes('text/html');
+            
+            results.push({
+                endpoint,
+                status: response.status,
+                statusText: response.statusText,
+                contentType,
+                isJson,
+                isHtml,
+                ok: response.ok
+            });
+            
+            console.log(`📊 النتيجة: ${response.status} ${response.statusText} (${contentType})`);
+            
+        } catch (error) {
+            results.push({
+                endpoint,
+                error: error.message,
+                ok: false
+            });
+            console.log(`❌ خطأ: ${error.message}`);
         }
-
-        // تحميل التفضيلات الأخرى
-        const prefs = JSON.parse(localStorage.getItem('goldAppPrefs') || '{}');
-        
-        if (prefs.selectedType && typeMap.has(prefs.selectedType)) {
-            selectedType = typeMap.get(prefs.selectedType);
-        }
-        
-        if (prefs.selectedCurrency && currencyMap.has(prefs.selectedCurrency)) {
-            selectedCurrency = currencyMap.get(prefs.selectedCurrency);
-        }
-        
-        console.log('✅ التفضيلات المحملة:', { 
-            language: currentLanguage,
-            type: selectedType.id,
-            currency: selectedCurrency.code
-        });
-    } catch (error) {
-        console.warn('⚠️ خطأ في تحميل التفضيلات:', error);
-        // استخدام القيم الافتراضية
-        selectedType = typeMap.get("gram24");
-        selectedCurrency = currencyMap.get("TRY");
     }
+    
+    console.table(results);
+    return results;
 }
 
-function saveUserPreferences() {
-    try {
-        const prefs = {
-            language: currentLanguage,
-            selectedType: selectedType.id,
-            selectedCurrency: selectedCurrency.code,
-            quantity: $('#qty')?.value || 1,
-            lastUsed: new Date().toISOString()
-        };
-        
-        localStorage.setItem('goldAppPrefs', JSON.stringify(prefs));
-    } catch (error) {
-        console.warn('⚠️ خطأ في حفظ التفضيلات:', error);
-    }
-}
-
-// ============================================================================
-// 🔥 EVENT LISTENERS
-// ============================================================================
-
-function setupEventListeners() {
-    // زر التحديث
-    const refreshBtn = $("#refreshBtn");
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', fetchData);
-    }
-
-    // القائمة المنسدلة للأنواع
-    const unitSelect = $("#unitSelect");
-    if (unitSelect) {
-        unitSelect.addEventListener('change', (e) => {
-            selectType(e.target.value);
-        });
-    }
-
-    // حقل الكمية
-    const qtyInput = $("#qty");
-    if (qtyInput) {
-        qtyInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                renderPricesFromData();
-                saveUserPreferences();
-            }, 300);
-        });
-    }
-}
-
-function cleanup() {
-    if (autoTimer) clearInterval(autoTimer);
-    if (newsTimer) clearInterval(newsTimer);
-    if (debounceTimer) clearTimeout(debounceTimer);
-}
-
-// ============================================================================
-// 🔥 MAIN INITIALIZATION
-// ============================================================================
-
-document.addEventListener('DOMContentLoaded', function() {
+// 🔥 تعديل التهيئة لتشمل اختبار API
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 تطبيق أسعار الذهب يعمل...');
     
     // 1. تحميل التفضيلات
@@ -864,18 +931,33 @@ document.addEventListener('DOMContentLoaded', function() {
     buildUI();
     
     // 3. إعداد الواجهة
-    setTimeout(() => {
+    setTimeout(async () => {
         setActiveUI();
         updateAllTexts();
         updateGoldTypeLabels();
         updateCurrencyLabels();
         setupEventListeners();
         
-        // 4. جلب البيانات
-        fetchData();
+        // 4. اختبار اتصال API أولاً
+        console.log('🔍 بدء اختبار اتصال API...');
+        const apiTestResults = await testAPIConnection();
         
-        // 5. جدولة التحديث التلقائي (كل 5 دقائق)
-        autoTimer = setInterval(fetchData, 5 * 60 * 1000);
+        // 5. تحليل نتائج الاختبار
+        const workingEndpoint = apiTestResults.find(r => r.ok);
+        
+        if (workingEndpoint) {
+            console.log(`✅ تم العثور على endpoint يعمل: ${workingEndpoint.endpoint}`);
+            showNotification(`✅ تم الاتصال بـ ${workingEndpoint.endpoint}`, 'success');
+        } else {
+            console.warn('⚠️ لم يتم العثور على أي endpoint يعمل');
+            showNotification('⚠️ السيرفر غير متاح، استخدام بيانات محلية', 'warning');
+        }
+        
+        // 6. جلب البيانات
+        await fetchData();
+        
+        // 7. جدولة التحديث التلقائي (كل 10 دقائق)
+        autoTimer = setInterval(fetchData, 10 * 60 * 1000);
         
         console.log('✅ التطبيق مهيأ وجاهز للعمل');
     }, 100);
