@@ -1,5 +1,5 @@
 // ============================================================================
-// 🔥 GOLD PRICES APP - COMPLETE VERSION WITH ALL FUNCTIONS
+// 🔥 أسعار الذهب - التطبيق الكامل
 // ============================================================================
 
 // 1️⃣ أنواع الذهب بجميع اللغات
@@ -37,7 +37,7 @@ const mockApiData = {
     "price_gram_try": "5790.8",
     "price_gram_usd": "136.8983",
     "price_ounce_usd": "4258.02",
-    "المصدر": "Custom Gold Prices",
+    "المصدر": "أسعار الذهب",
     "fx": {
         "USD": "1.00",
         "EUR": "0.92",
@@ -53,8 +53,12 @@ const mockApiData = {
     },
     "gold_coins": {
         "gram24": {
-            "buy": { "TRY": "5790.8", "USD": "136.90", "EUR": "126.05", "SAR": "513.55", "AED": "502.45" },
-            "sell": { "TRY": "5721.45", "USD": "135.35", "EUR": "124.61", "SAR": "507.45", "AED": "496.52" }
+            "buy": { "TRY": "5790.8", "USD": "136.90", "EUR": "126.05", "SAR": "513.55", "AED": "502.45", "KWD": "42.45", "BHD": "51.95", "IQD": "179000", "EGP": "277500", "SYP": "75300000", "DZD": "77850" },
+            "sell": { "TRY": "5721.45", "USD": "135.35", "EUR": "124.61", "SAR": "507.45", "AED": "496.52", "KWD": "41.95", "BHD": "51.35", "IQD": "177000", "EGP": "274000", "SYP": "74300000", "DZD": "76800" },
+            "weight": "1.00",
+            "name_ar": "جرام ذهب 24",
+            "name_en": "24K Gold",
+            "name_tr": "24 Ayar Altın"
         }
     }
 };
@@ -74,7 +78,7 @@ let newsTimer = null;
 let debounceTimer = null;
 
 // ============================================================================
-// 🔥 HELPER FUNCTIONS
+// 🔥 الدوال المساعدة
 // ============================================================================
 
 function $(selector) {
@@ -100,6 +104,7 @@ function updateLast(timestamp) {
     }
 }
 
+// 🔥 دالة تنسيق الأرقام
 function formatNumber(num, currencyCode) {
     if (isNaN(num) || num === null || num === undefined) return '0.00';
     const number = parseFloat(num);
@@ -122,6 +127,7 @@ function formatNumber(num, currencyCode) {
     }
 }
 
+// 🔥 دالة تحريك تحديث السعر
 function animatePriceUpdate(selector, newValue, changePercent, type) {
     const element = $(selector);
     if (!element) return;
@@ -144,6 +150,7 @@ function animatePriceUpdate(selector, newValue, changePercent, type) {
     element.className = colorClass;
 }
 
+// 🔥 نظام الإشعارات
 function showNotification(message, type = 'info') {
     console.log(`📢 ${type.toUpperCase()}: ${message}`);
     
@@ -192,7 +199,7 @@ function showNotification(message, type = 'info') {
 }
 
 // ============================================================================
-// 🔥 LANGUAGE & TRANSLATION FUNCTIONS
+// 🔥 دوال اللغة والترجمة
 // ============================================================================
 
 function updateAllTexts() {
@@ -304,7 +311,7 @@ function changeLanguage(lang) {
 }
 
 // ============================================================================
-// 🔥 UI BUILDING FUNCTIONS
+// 🔥 دوال بناء الواجهة
 // ============================================================================
 
 function buildUI() {
@@ -394,7 +401,7 @@ function setActiveUI() {
 }
 
 // ============================================================================
-// 🔥 CORE FUNCTIONS
+// 🔥 الدوال الأساسية
 // ============================================================================
 
 function selectCurrency(code) {
@@ -426,7 +433,7 @@ function selectType(typeId) {
 }
 
 // ============================================================================
-// 🔥 PREFERENCES MANAGEMENT
+// 🔥 إدارة التفضيلات
 // ============================================================================
 
 function loadUserPreferences() {
@@ -478,7 +485,7 @@ function saveUserPreferences() {
 }
 
 // ============================================================================
-// 🔥 PRICE CALCULATION FUNCTIONS
+// 🔥 دوال حساب الأسعار
 // ============================================================================
 
 function getGramBase() {
@@ -505,7 +512,7 @@ function renderPricesFromData() {
     let sell = 0;
     let foundData = false;
 
-    // المحاولة الأولى: البيانات من server.js
+    // المحاولة الأولى: البيانات من موقعك
     if (latestData.data && latestData.data.gold) {
         const goldData = latestData.data.gold;
         const selectedGold = goldData[selectedType.id];
@@ -518,7 +525,7 @@ function renderPricesFromData() {
                 buy = parseFloat(buy);
                 sell = parseFloat(sell);
                 foundData = true;
-                console.log('💰 استخدام البيانات الجديدة');
+                console.log('💰 استخدام البيانات من موقعك');
             }
         }
     }
@@ -608,7 +615,7 @@ function renderPricesFromData() {
 }
 
 // ============================================================================
-// 🔥 DATA FETCHING FUNCTIONS
+// 🔥 دوال جلب البيانات
 // ============================================================================
 
 async function fetchData() {
@@ -622,9 +629,9 @@ async function fetchData() {
             throw new Error('NO_INTERNET');
         }
         
-        // استخدام الرابط المباشر
-        const apiUrl = 'https://amap-altin.ueeeel.app/api/prices';
-        console.log('📡 رابط API:', apiUrl);
+        // 🔥 استخدام موقعك: https://aswar-altin.vercel.app
+        const apiUrl = 'https://aswar-altin.vercel.app/api/prices';
+        console.log('📡 رابط موقعك:', apiUrl);
         
         // إعداد الطلب مع timeout
         const controller = new AbortController();
@@ -649,7 +656,7 @@ async function fetchData() {
         
         // تحليل JSON
         const data = await response.json();
-        console.log('✅ البيانات المستلمة:', data);
+        console.log('✅ البيانات المستلمة من موقعك:', data);
         
         // حفظ البيانات
         latestData = data;
@@ -752,7 +759,7 @@ async function fetchData() {
 }
 
 // ============================================================================
-// 🔥 EVENT LISTENERS
+// 🔥 مستمعو الأحداث
 // ============================================================================
 
 function setupEventListeners() {
@@ -790,11 +797,12 @@ function cleanup() {
 }
 
 // ============================================================================
-// 🔥 MAIN INITIALIZATION
+// 🔥 التهيئة الرئيسية
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 تطبيق أسعار الذهب يعمل...');
+    console.log('🌐 موقعك: https://aswar-altin.vercel.app');
     
     // 1. تحميل التفضيلات
     loadUserPreferences();
