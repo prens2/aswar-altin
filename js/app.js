@@ -1227,7 +1227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCurrencyLabels();
 
         setupEventListeners();
-        updateData();
         fetchGoldNews();
         autoTimer = setInterval(updateData, 30000);
         newsTimer = setInterval(fetchGoldNews, 300000);
