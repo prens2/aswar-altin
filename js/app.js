@@ -1200,9 +1200,8 @@ function setupEventListeners() {
   });
 }
 
-// 🔥 التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded', () => { 
-  // 🔥 الإصلاح: تهيئة المتغيرات أولاً
+  // 🔥 تهيئة المتغيرات
   if (!selectedType) selectedType = typeMap.get("gram24") || types[0];
   if (!selectedCurrency) selectedCurrency = currencyMap.get("TRY") || currencyList[0];
   
@@ -1217,15 +1216,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setupEventListeners();
     
+    // 🔥 جلب البيانات الأول
     updateData();
     fetchGoldNews();
     
     cleanup();
-    autoTimer = setInterval(fetchData, 30 * 1000);
+    
+    // 🔥 التحديث كل 30 ثانية
+    autoTimer = setInterval(updateData, 30 * 1000);
+
+    // 🔥 تحديث الأخبار كل 5 دقائق
     newsTimer = setInterval(fetchGoldNews, 300000);
     
   }, 100);
 });
+
 
 // 🔥 إدارة دورة حياة الصفحة
 window.addEventListener('beforeunload', cleanup);
