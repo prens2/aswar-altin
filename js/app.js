@@ -812,14 +812,22 @@ function setActiveUI(){
   }
 }
 
-async function fetchData() {
-    try {
-        const response = await fetch(API_BASE + '/prices');
-        const data = await response.json();
-        // معالجة البيانات
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
+async function updateData() {
+  try {
+    setStatus("⏳ يتم تحديث الأسعار...");
+
+    const response = await fetch("/api/gold");
+    const data = await response.json();
+
+    latestData = data;
+    renderPricesFromData();
+
+    setStatus("✔ تم تحديث الأسعار");
+  } catch (err) {
+    console.error("❌ خطأ في updateData:", err);
+    setStatus("❌ تعذر تحديث الأسعار — سيتم استخدام البيانات الاحتياطية");
+    renderFallbackPrices();
+  }
 }
 
 // 🔥 دالة الحصول على سعر الجرام الأساسي
