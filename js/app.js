@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         setActiveUI();
         updateAllTexts();
-        updateTypeLabels(); // تأكد من الاسم الصحيح
+        updateTypeLabels();
         updateCurrencyLabels();
 
         setupEventListeners();
