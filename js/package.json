@@ -1,5 +1,5 @@
 {
-  "name": "gold-prices-api",
+  "main": "src/server.js"
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -13,3 +13,4 @@
     "cors": "^2.8.5"
   }
 }
+
