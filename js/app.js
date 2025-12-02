@@ -796,24 +796,18 @@ function setActiveUI(){
   }
 }
 
-async function fetchData() {
+async function updateData() {
     try {
-        setStatus('🔄 جاري التحديث...');
-        
-        // استخدم البيانات المحلية مباشرة
-        latestData = mockApiData;
-        updateLast(mockApiData["تم التحديث"]);
-        renderPricesFromData();
-        
-        setStatus('✅ تم التحديث - بيانات محلية');
-        showNotification('✅ تم تحميل البيانات المحلية بنجاح', 'success');
-        
+        const response = await fetch(API_BASE + '/prices');
+        const data = await response.json();
+        latestData = data;
+        setStatus('✅ تم تحديث البيانات بنجاح');
+        renderPricesFromData(); // تحديث الأسعار بعد الحصول على البيانات
     } catch (error) {
         console.error('❌ خطأ في تحديث البيانات:', error);
         setStatus('❌ خطأ في تحميل البيانات');
     }
 }
-
 
 // 🔥 دالة الحصول على سعر الجرام الأساسي
 function getGramBase() {
