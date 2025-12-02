@@ -1217,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setupEventListeners();
     
-    fetchData(); 
+    updateData();
     fetchGoldNews();
     
     cleanup();
