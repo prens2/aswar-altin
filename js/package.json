@@ -1,5 +1,5 @@
 {
-  "main": "src/server.js"
+  "name": "aswar-altin-api",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -13,4 +13,5 @@
     "cors": "^2.8.5"
   }
 }
+
 
