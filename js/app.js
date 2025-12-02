@@ -618,7 +618,7 @@ function renderPricesFromData() {
 // 🔥 دوال جلب البيانات
 // ============================================================================
 
-// في app.js - تعديل دالة fetchData (الإصدار المصحح)
+// في app.js - تعديل دالة fetchData (الإصدار المصحح بدون تكرار)
 async function fetchData() {
     console.group('📥 جلب البيانات من Render.com');
     
@@ -629,12 +629,11 @@ async function fetchData() {
         const apiUrl = 'https://aswar-altin-api.onrender.com/api/prices';
         console.log('📡 الاتصال بـ:', apiUrl);
         
-        // 🔥 إضافة timeout لمنع الانتظار الطويل
+        // إضافة timeout لمنع الانتظار الطويل
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             console.warn('⏰ انتهى وقت الانتظار (10 ثوانٍ)');
             controller.abort();
-            throw new Error('انتهى وقت الاتصال');
         }, 10000);
         
         // جلب البيانات
@@ -646,7 +645,7 @@ async function fetchData() {
             }
         });
         
-        // 🔥 هذا مهم: إلغاء الـ timeout بعد نجاح الاتصال
+        // إلغاء الـ timeout بعد نجاح الاتصال
         clearTimeout(timeoutId);
         
         console.log('📥 حالة الاستجابة:', response.status, response.statusText);
@@ -655,98 +654,14 @@ async function fetchData() {
             throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
         }
         
+        // تحليل JSON
         const data = await response.json();
-        latestData = data;
-        
         console.log('✅ البيانات المستلمة:', {
             success: data.success,
             timestamp: data.timestamp,
             source: data.source,
             hasData: !!(data.data && data.data.gold)
         });
-        
-        renderPricesFromData();
-        updateLast(data.timestamp || data['تم التحديث'] || new Date().toISOString());
-        setStatus('✅ تم التحديث الآن');
-        
-        showNotification(
-            currentLanguage === 'ar' 
-                ? '✅ تم تحديث أسعار الذهب'
-                : '✅ Gold prices updated',
-            'success'
-        );
-        
-        // حفظ البيانات محلياً للاستخدام بدون اتصال
-        try {
-            const cacheData = {
-                data: latestData,
-                fetchedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
-            };
-            
-            localStorage.setItem('goldPricesCache', JSON.stringify(cacheData));
-            localStorage.setItem('lastSuccessfulFetch', new Date().toISOString());
-            console.log('💾 البيانات محفوظة في localStorage');
-        } catch (cacheError) {
-            console.warn('⚠️ تعذر حفظ البيانات محلياً:', cacheError.message);
-        }
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب البيانات:', error.message || error);
-        
-        // محاولة استخدام البيانات المخزنة محلياً
-        let usedCachedData = false;
-        
-        try {
-            const cached = localStorage.getItem('goldPricesCache');
-            if (cached) {
-                const cache = JSON.parse(cached);
-                const expiresAt = new Date(cache.expiresAt);
-                
-                if (expiresAt > new Date()) {
-                    console.log('📂 استخدام البيانات المخزنة محلياً');
-                    latestData = cache.data;
-                    usedCachedData = true;
-                    setStatus('📂 استخدام بيانات محفوظة');
-                    
-                    showNotification(
-                        currentLanguage === 'ar' 
-                            ? '📂 استخدام بيانات محفوظة (غير متصل)'
-                            : '📂 Using cached data (offline)',
-                        'info'
-                    );
-                }
-            }
-        } catch (cacheError) {
-            console.warn('⚠️ خطأ في استخدام البيانات المخزنة:', cacheError);
-        }
-        
-        // استخدام البيانات الافتراضية إذا لم تكن هناك بيانات مخزنة
-        if (!usedCachedData) {
-            console.log('🏗️ استخدام البيانات الافتراضية');
-            latestData = mockApiData;
-            setStatus('❌ استخدام بيانات محلية');
-            
-            showNotification(
-                currentLanguage === 'ar' 
-                    ? '❌ فشل الاتصال. استخدام بيانات محلية'
-                    : '❌ Connection failed. Using local data',
-                'error'
-            );
-        }
-        
-        // تحديث الواجهة مع البيانات المتاحة
-        renderPricesFromData();
-        updateLast(latestData['تم التحديث'] || new Date().toISOString());
-        
-    } finally {
-        console.groupEnd();
-    }
-}
-        
-        // تحليل JSON
-        const data = await response.json();
-        console.log('✅ البيانات المستلمة من موقعك:', data);
         
         // حفظ البيانات
         latestData = data;
@@ -798,7 +713,7 @@ async function fetchData() {
     } catch (error) {
         console.error('❌ خطأ في جلب البيانات:', error.message || error);
         
-        // محاولة استخدام البيانات المخزنة
+        // محاولة استخدام البيانات المخزنة محلياً
         let usedCachedData = false;
         
         try {
@@ -825,7 +740,7 @@ async function fetchData() {
             console.warn('⚠️ خطأ في استخدام البيانات المخزنة:', cacheError);
         }
         
-        // استخدام البيانات الافتراضية
+        // استخدام البيانات الافتراضية إذا لم تكن هناك بيانات مخزنة
         if (!usedCachedData) {
             console.log('🏗️ استخدام البيانات الافتراضية');
             latestData = mockApiData;
@@ -839,7 +754,7 @@ async function fetchData() {
             );
         }
         
-        // تحديث الواجهة
+        // تحديث الواجهة مع البيانات المتاحة
         renderPricesFromData();
         updateLast(latestData['تم التحديث'] || new Date().toISOString());
         
