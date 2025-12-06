@@ -1,9 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/api/gold-prices",
-      "destination": "https://aswar-altin.onrender.com/api/prices"
-    }
-  ]
-}
-
