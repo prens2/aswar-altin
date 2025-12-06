@@ -721,7 +721,6 @@ function setActiveUI(){
   $("#unitSelect").value = selectedType.id;
 }
 
-// 🔥 دالة جلب البيانات من API
 async function fetchData() {
     try {
         setStatus('🔄 جاري التحديث...');
@@ -740,7 +739,7 @@ async function fetchData() {
         console.error('❌ خطأ في جلب البيانات:', error);
         setStatus('❌ استخدام البيانات المحلية');
         
-        // استخدام البيانات المحلية المحدثة
+        // استخدام البيانات المحلية عند فشل الاتصال
         latestData = mockApiData;
         updateLast(mockApiData["تم التحديث"]);
         renderPricesFromData();
