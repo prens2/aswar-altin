@@ -721,29 +721,39 @@ function setActiveUI(){
   $("#unitSelect").value = selectedType.id;
 }
 
+// 🔥 دالة جلب البيانات من Cloudflare Worker مع fallback للبيانات المحلية
 async function fetchData() {
     try {
+        // تحديث حالة الواجهة
         setStatus('🔄 جاري التحديث...');
         
+        // 🔹 جلب البيانات من Worker
         const response = await fetch(API_BASE);
-        if (!response.ok) throw new Error('فشل جلب البيانات');
-        
+        if (!response.ok) throw new Error('فشل جلب البيانات من Worker');
+
+        // تحويل الرد من JSON لكائن
         const data = await response.json();
+
+        // تخزين البيانات في المتغير العالمي
         latestData = data;
-        
+
+        // تحديث واجهة المستخدم
         setStatus('✅ تم التحديث');
         updateLast(data["تم التحديث"]);
         renderPricesFromData();
-        
+
     } catch (error) {
         console.error('❌ خطأ في جلب البيانات:', error);
+
+        // تحديث حالة الواجهة بأننا سنستخدم البيانات المحلية
         setStatus('❌ استخدام البيانات المحلية');
-        
+
         // استخدام البيانات المحلية عند فشل الاتصال
         latestData = mockApiData;
         updateLast(mockApiData["تم التحديث"]);
         renderPricesFromData();
-        
+
+        // إشعار المستخدم بأن البيانات المحلية مستخدمة
         showNotification(
             currentLanguage === 'ar' ? 'استخدام البيانات المحلية المحدثة' : 
             currentLanguage === 'en' ? 'Using updated local data' : 'Güncel yerel veriler kullanılıyor',
