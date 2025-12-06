@@ -1,4 +1,4 @@
-// AltinLira final app.js - COMPLETE & FIXED VERSION
+// AltinLira fixed full app.js
 const API_BASE = "https://royal-limit-d5a2.mohamad1999mz.workers.dev/";
 
 // 🔥 أنواع الذهب
@@ -15,26 +15,6 @@ const types = [
   {id:"silver", labels:{ar:"فضة",en:"Silver",tr:"Gümüş"},img:"images/gold/silver.png", grams:1}
 ];
 
-// 🔥 بيانات محلية احتياطية
-const mockApiData = {
-  "تم التحديث":"2025-11-23T22:04:30.958Z",
-  "price_gram_try":"5790.8",
-  "price_gram_usd":"136.8983",
-  "price_ounce_usd":"4258.02",
-  "المصدر":"Custom Gold Prices",
-  "fx":{"USD":"1.00","EUR":"0.92","TRY":"42.30","SAR":"3.75","AED":"3.67","KWD":"0.31"},
-  "gold_coins":{
-    "gram24":{"buy":"5790.8","sell":"5721.45","weight":"1.00","name_ar":"عيار 24","name_en":"24K Gold","name_tr":"24 Ayar Altın"},
-    "gram22":{"buy":"5304.37","sell":"5240.85","weight":"1.00","name_ar":"عيار 22","name_en":"22K Gold","name_tr":"22 Ayar Altın"},
-    "gram21":{"buy":"5066.95","sell":"5006.27","weight":"1.00","name_ar":"عيار 21","name_en":"21K Gold","name_tr":"21 Ayar Altın"},
-    "gram18":{"buy":"4343.10","sell":"4291.09","weight":"1.00","name_ar":"عيار 18","name_en":"18K Gold","name_tr":"18 Ayar Altın"},
-    "gram14":{"buy":"3376.04","sell":"3335.61","weight":"1.00","name_ar":"عيار 14","name_en":"14K Gold","name_tr":"14 Ayar Altın"},
-    "lira":{"buy":"42388.66","sell":"41881.01","weight":"7.32","name_ar":"ليرة ذهب","name_en":"Gold Lira","name_tr":"Altın Lira"},
-    "half_lira":{"buy":"21194.33","sell":"20940.51","weight":"3.66","name_ar":"نصف ليرة","name_en":"Half Lira","name_tr":"Yarım Lira"},
-    "quarter_lira":{"buy":"10597.16","sell":"10470.25","weight":"1.83","name_ar":"ربع ليرة","name_en":"Quarter Lira","name_tr":"Çeyrek Lira"}
-  }
-};
-
 // 🔥 العملات
 const currencyList = [
   {code:"TRY", labels:{ar:"الليرة التركية",en:"Turkish Lira",tr:"Türk Lirası"},flag:"tr"},
@@ -44,20 +24,36 @@ const currencyList = [
   {code:"USD", labels:{ar:"الدولار الأمريكي",en:"US Dollar",tr:"ABD Doları"},flag:"us"}
 ];
 
-const currencyMap = new Map(currencyList.map(c => [c.code, c]));
-const typeMap = new Map(types.map(t => [t.id, t]));
+const currencyMap = new Map(currencyList.map(c=>[c.code,c]));
+const typeMap = new Map(types.map(t=>[t.id,t]));
 
 let selectedType = types[0];
 let selectedCurrency = currencyList[0];
 let latestData = null;
 let currentLanguage = 'ar';
 let autoTimer = null;
-let newsTimer = null;
 let debounceTimer = null;
 
 // 🔥 دوال مساعدة
 function $(s){return document.querySelector(s)}
-function setStatus(m){ const e=$("#apiStatus"); if(e) e.textContent=m }
+function setStatus(msg){const e=$("#apiStatus"); if(e) e.textContent=msg}
+
+// 🔥 تنظيف الموارد
+function cleanup(){
+  if(autoTimer){clearInterval(autoTimer); autoTimer=null;}
+  if(debounceTimer){clearTimeout(debounceTimer); debounceTimer=null;}
+}
+
+// 🔥 تحميل تفضيلات المستخدم
+function loadUserPreferences(){
+  try{
+    const savedLang = localStorage.getItem('siteLanguage');
+    if(savedLang) currentLanguage=savedLang;
+    const prefs = JSON.parse(localStorage.getItem('goldAppPrefs')||"{}");
+    if(prefs.selectedType) selectedType=typeMap.get(prefs.selectedType)||selectedType;
+    if(prefs.selectedCurrency) selectedCurrency=currencyMap.get(prefs.selectedCurrency)||selectedCurrency;
+  }catch(e){console.warn(e);}
+}
 
 // 🔥 تحديث الواجهة النشطة
 function setActiveUI(){
@@ -74,8 +70,7 @@ function setActiveUI(){
 
 // 🔥 اختيار نوع الذهب
 function selectType(typeId){
-  const type = typeMap.get(typeId);
-  if(!type) return;
+  const type=typeMap.get(typeId); if(!type) return;
   selectedType=type;
   setActiveUI();
   renderPricesFromData();
@@ -83,14 +78,13 @@ function selectType(typeId){
 
 // 🔥 اختيار العملة
 function selectCurrency(code){
-  const c = currencyMap.get(code);
-  if(!c) return;
+  const c=currencyMap.get(code); if(!c) return;
   selectedCurrency=c;
   setActiveUI();
   renderPricesFromData();
 }
 
-// 🔥 جلب البيانات مع fallback
+// 🔥 جلب البيانات
 async function fetchData(){
   try{
     setStatus('🔄 جاري التحديث...');
@@ -111,34 +105,38 @@ async function fetchData(){
 // 🔥 عرض الأسعار
 function renderPricesFromData(){
   if(!latestData) return;
-  const base = parseFloat(latestData.price_gram_try)||5790.8;
-  const grams = selectedType.grams||1;
-  const price = base*grams;
-  const spread = (5790.8-5721.45)/5790.8;
-  const buy = +(price*(1+spread/2)).toFixed(2);
-  const sell = +(price*(1-spread/2)).toFixed(2);
+  const base=parseFloat(latestData.price_gram_try)||5790.8;
+  const grams=selectedType.grams||1;
+  const price=base*grams;
+  const spread=(5790.8-5721.45)/5790.8;
+  const buy=+(price*(1+spread/2)).toFixed(2);
+  const sell=+(price*(1-spread/2)).toFixed(2);
   $("#buyPrice").textContent=buy;
   $("#sellPrice").textContent=sell;
 }
 
-// 🔥 بناء واجهة العملات والأنواع
+// 🔥 بناء واجهة المستخدم
 function buildUI(){
-  const tcont=$("#typesScroll"); if(tcont){tcont.innerHTML='';types.forEach(t=>{
-    const d=document.createElement('div');d.className='type-pill';d.id=t.id;
+  const tcont=$("#typesScroll");
+  if(tcont){tcont.innerHTML='';types.forEach(t=>{
+    const d=document.createElement('div'); d.className='type-pill'; d.id=t.id;
     d.innerHTML=`<div class="type-label">${t.labels[currentLanguage]||t.labels.ar}</div>`;
-    d.addEventListener('click',()=>selectType(t.id));tcont.appendChild(d);
+    d.addEventListener('click',()=>selectType(t.id));
+    tcont.appendChild(d);
   })}
   document.querySelectorAll('.currency-tab').forEach(tab=>{
     tab.addEventListener('click',()=>selectCurrency(tab.dataset.currency));
   });
 }
 
-// 🔥 Event Listeners
+// 🔥 التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded',()=>{
+  loadUserPreferences();
   buildUI();
   setActiveUI();
   fetchData();
   autoTimer=setInterval(fetchData,30*1000);
 });
 
-window.addEventListener('beforeunload',()=>{ if(autoTimer) clearInterval(autoTimer) });
+// 🔥 تنظيف عند الخروج
+window.addEventListener('beforeunload',cleanup);
